@@ -1,15 +1,8 @@
 const Engine = {
     // 1. REGISTRY
-    // The 'id' MUST be exactly the name of the folder in /themes/
     themes: [
-        { 
-            id: 'simple', 
-            name: 'Simple Digital'
-        },
-        { 
-            id: 'breathe', 
-            name: 'Deep Breathing'
-        }
+        { id: 'simple', name: 'Simple Digital' },
+        { id: 'breathe', name: 'Deep Breathing' }
     ],
 
     state: {
@@ -23,77 +16,117 @@ const Engine = {
         stage: document.getElementById('stage'),
         cssLink: document.getElementById('theme-stylesheet'),
         
+        // Drawers
         libraryDrawer: document.getElementById('library-drawer'),
         settingsDrawer: document.getElementById('settings-panel'),
         themeGrid: document.getElementById('theme-grid'),
-        settingsContent: document.getElementById('settings-content')
+        settingsContent: document.getElementById('settings-content'),
+        
+        // Buttons
+        btnFullscreen: document.getElementById('btn-fullscreen'),
+        btnExitFs: document.getElementById('btn-exit-fs')
     },
 
     init: function() {
         this.loadState();
         
-        // Listeners
-        document.getElementById('btn-library').addEventListener('click', () => {
-            this.dom.libraryDrawer.classList.add('active');
-            this.dom.settingsDrawer.classList.remove('active');
-        });
-        document.getElementById('btn-close-library').addEventListener('click', () => {
-            this.dom.libraryDrawer.classList.remove('active');
+        // --- NAVIGATION LISTENERS ---
+        document.getElementById('btn-library').addEventListener('click', () => this.toggleDrawer('library'));
+        document.getElementById('btn-close-library').addEventListener('click', () => this.closeDrawers());
+
+        document.getElementById('btn-settings').addEventListener('click', () => this.toggleDrawer('settings'));
+        document.getElementById('btn-close-settings').addEventListener('click', () => this.closeDrawers());
+
+        // --- FULLSCREEN LISTENERS ---
+        this.dom.btnFullscreen.addEventListener('click', () => this.enterFullscreen());
+        this.dom.btnExitFs.addEventListener('click', () => this.exitFullscreen());
+
+        // Listen for "ESC" key or native browser exit
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                this.exitFullscreenUI();
+            }
         });
 
-        document.getElementById('btn-settings').addEventListener('click', () => {
-            this.dom.settingsDrawer.classList.add('active');
-            this.dom.libraryDrawer.classList.remove('active');
-        });
-        document.getElementById('btn-close-settings').addEventListener('click', () => {
-            this.dom.settingsDrawer.classList.remove('active');
-        });
-
-        // Build the new List UI
+        // --- APP START ---
         this.buildLibraryUI();
-        
-        // Load default
         this.loadTheme(this.state.activeThemeId);
         this.startClock();
     },
 
-    // --- NEW LIST BUILDER (Sleek Tiles) ---
+    // --- FULLSCREEN LOGIC ---
+    enterFullscreen: function() {
+        // 1. Request Browser Native Fullscreen
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        }
+        
+        // 2. Update UI (Hide Nav, Show Exit Button)
+        document.body.classList.add('fullscreen-mode');
+        this.closeDrawers(); // Ensure drawers are closed
+    },
+
+    exitFullscreen: function() {
+        // 1. Exit Browser Native Fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+        // UI update happens automatically via the 'fullscreenchange' event listener above
+    },
+
+    // Helper to restore UI
+    exitFullscreenUI: function() {
+        document.body.classList.remove('fullscreen-mode');
+    },
+
+    // --- DRAWER LOGIC ---
+    toggleDrawer: function(type) {
+        if (type === 'library') {
+            this.dom.libraryDrawer.classList.add('active');
+            this.dom.settingsDrawer.classList.remove('active');
+        } else {
+            this.dom.settingsDrawer.classList.add('active');
+            this.dom.libraryDrawer.classList.remove('active');
+        }
+    },
+
+    closeDrawers: function() {
+        this.dom.libraryDrawer.classList.remove('active');
+        this.dom.settingsDrawer.classList.remove('active');
+    },
+
+    // --- LIBRARY BUILDER (Sleek List) ---
     buildLibraryUI: function() {
         const container = this.dom.themeGrid;
         container.innerHTML = ''; 
 
         this.themes.forEach(theme => {
-            // Create the Tile container
             const tile = document.createElement('div');
             tile.className = 'theme-tile';
             
-            // Check if this is the active theme
             if (theme.id === this.state.activeThemeId) {
                 tile.classList.add('active');
             }
 
-            // Tile Text
             const text = document.createElement('span');
             text.className = 'tile-text';
             text.innerText = theme.name;
             
-            // Active Dot Indicator
-            const dot = document.createElement('div');
-            dot.className = 'tile-dot';
-
             tile.appendChild(text);
-            tile.appendChild(dot);
 
-            // Click Logic
             tile.addEventListener('click', () => {
                 this.loadTheme(theme.id);
-                this.buildLibraryUI(); // Re-render list to update borders
+                this.buildLibraryUI(); 
             });
 
             container.appendChild(tile);
         });
     },
 
+    // --- CORE ENGINE ---
     loadTheme: function(themeId) {
         if (this.currentThemeObj && this.currentThemeObj.destroy) {
             this.currentThemeObj.destroy();
@@ -102,7 +135,6 @@ const Engine = {
         this.state.activeThemeId = themeId;
         this.saveState();
         
-        // Path construction: themes/FOLDER_NAME/theme.css
         this.dom.cssLink.href = `themes/${themeId}/theme.css`;
         
         const oldScript = document.getElementById('theme-script');
