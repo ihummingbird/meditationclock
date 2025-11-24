@@ -1,0 +1,219 @@
+:root {
+    --bg-color: #050505;
+    --drawer-bg: #0a0a0a;
+    --border-dim: #333333;
+    --border-active: #ffffff;
+    --text-main: #ffffff;
+    --text-dim: #666666;
+}
+
+/* --- BASE RESET (Crucial for preventing scrollbars) --- */
+* {
+    box-sizing: border-box; /* This stops padding from breaking layout */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Locks the screen */
+    background: var(--bg-color);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-main);
+}
+
+/* --- NAVBAR --- */
+#navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    z-index: 1500;
+    background: rgba(5, 5, 5, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-dim);
+    opacity: 0.4; /* Faded by default */
+    transition: opacity 0.4s ease;
+}
+
+#navbar:hover { opacity: 1; }
+
+.nav-brand {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    font-weight: 600;
+}
+
+/* BUTTONS */
+.nav-btn {
+    background: transparent;
+    border: 1px solid var(--border-dim);
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-btn:hover {
+    border-color: var(--border-active);
+    color: var(--text-main);
+}
+
+/* --- DRAWERS (The Container) --- */
+.drawer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 320px; /* Fixed width */
+    background: var(--drawer-bg);
+    z-index: 2000;
+    padding: 30px; /* Generous internal padding */
+    box-shadow: 0 0 50px rgba(0,0,0,0.9);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-dim);
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px; /* Space between title and list */
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 15px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+}
+.close-btn:hover { color: white; }
+
+.left-drawer { left: 0; transform: translateX(-100%); }
+.left-drawer.active { transform: translateX(0); }
+
+.right-drawer { right: 0; transform: translateX(100%); }
+.right-drawer.active { transform: translateX(0); }
+
+
+/* --- THEME LIST TILES (The Redesign) --- */
+.grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Space between tiles */
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+.theme-tile {
+    position: relative;
+    width: 100%;
+    height: 70px; /* Fixed sleek height */
+    
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    
+    background: #000;
+    border: 1px solid var(--border-dim);
+    border-radius: 4px;
+    
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Hover State */
+.theme-tile:hover {
+    border-color: #666;
+    transform: translateY(5px); /* Slight nudge to right */
+}
+
+/* Active State (Selected) */
+.theme-tile.active {
+    border-color: var(--border-active); /* Pure White Border */
+    background: #111;
+}
+
+.tile-text {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    transition: color 0.2s;
+}
+
+.theme-tile.active .tile-text {
+    color: var(--text-main); /* White Text */
+    font-weight: 700;
+}
+
+/* Little indicator dot for active item */
+.tile-dot {
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    right: 20px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.theme-tile.active .tile-dot {
+    opacity: 1;
+}
+
+/* --- SETTINGS SLIDERS --- */
+.setting-item { margin-bottom: 30px; }
+.setting-label {
+    display: block;
+    color: var(--text-dim);
+    font-size: 10px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+}
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 0; /* Square thumb for sleekness */
+    background: #ffffff;
+    cursor: pointer;
+    margin-top: -5px;
+}
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 2px;
+    cursor: pointer;
+    background: #333;
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meditation Clock</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="core/global.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav id="navbar">
+        <div class="nav-left">
+            <!-- This is the NEW Library Button -->
+            <button id="btn-library" class="nav-btn">
+                <span class="icon">❖</span> Library
+            </button>
+        </div>
+
+        <div class="nav-brand">Meditation Clock</div>
+
+        <div class="nav-right">
+            <button id="btn-settings" class="nav-btn">
+                Settings 
+            </button>
+        </div>
+    </nav>
+
+    <!-- STAGE (Where the clock lives) -->
+    <div id="stage"></div>
+
+    <!-- LEFT DRAWER: Theme Library -->
+    <div id="library-drawer" class="drawer left-drawer">
+        <div class="drawer-header">
+            <h3>Select Atmosphere</h3>
+            <button id="btn-close-library" class="close-btn">×</button>
+        </div>
+        <div id="theme-grid" class="grid-container">
+            <!-- JavaScript will put cards here -->
+        </div>
+    </div>
+
+    <!-- RIGHT DRAWER: Settings -->
+    <div id="settings-panel" class="drawer right-drawer">
+        <div class="drawer-header">
+            <h3>Configuration</h3>
+            <button id="btn-close-settings" class="close-btn">×</button>
+        </div>
+        <div id="settings-content">
+            <!-- JavaScript will put sliders here -->
+        </div>
+    </div>
+
+    <!-- LOGIC -->
+    <script src="core/engine.js"></script>
+</body>
+</html>

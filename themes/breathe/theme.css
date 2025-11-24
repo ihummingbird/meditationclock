@@ -1,0 +1,29 @@
+body {
+    background-color: #222;
+    color: #fff;
+    font-family: sans-serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.breathe-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+#instruction-text {
+    font-size: 5rem;
+    font-weight: bold;
+    transition: all 1s ease-in-out; /* Smooth animation handled by CSS */
+}
+
+.tiny-clock {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 1rem;
+    opacity: 0.5;
+}
