@@ -47,12 +47,11 @@ I wanted the code to be clean and extensible. The project is structured into a c
 File Structure:
 code Text
 
-    
 /core
   ├── engine.js      # The Brain (Handles time, saving, UI generation)
   └── global.css     # The Shell (Drawers, Navbar, Session logic)
 /themes
-  ├── /"theme name"        # Theme specific logic & styles
+  └── /theme-name    # Theme specific logic & styles (e.g. /simple, /ios)
 
 
   
@@ -81,4 +80,4 @@ The engine is "dumb"—it doesn't know what a theme looks like until it loads it
 
 This project is open source at least for now, even if I make it close source I'll keep it free. Feel free to fork it, modify it, and use it to find your own peace of mind but don't monitize it!
 
-Built with focus.
+Built without focus. :D
