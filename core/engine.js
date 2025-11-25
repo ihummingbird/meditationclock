@@ -2,7 +2,9 @@ const Engine = {
     // 1. REGISTRY
     themes: [
         { id: 'simple', name: 'Simple Digital' },
-        { id: 'breathe', name: 'Deep Breathing' }
+        { id: 'breathe', name: 'Deep Breathing' },
+        { id: 'ios', name: 'Standby Mode' },
+        { id: 'analog', name: 'Analog Standby' } // NEW 
     ],
 
     state: {
@@ -10,12 +12,12 @@ const Engine = {
         themeSettings: {}
     },
     
-    // NEW: 3-Stage Session State
+    // Session State
     session: {
-        active: false,    // Is the timer ticking?
-        finished: false,  // Did we just finish and are showing the result?
+        active: false,
+        finished: false,
         startTime: null,
-        elapsed: 0        // Holds the final duration
+        elapsed: 0
     },
 
     currentThemeObj: null,
@@ -42,23 +44,20 @@ const Engine = {
     init: function() {
         this.loadState();
         
-        // Navigation Listeners
+        // Listeners
         document.getElementById('btn-library').addEventListener('click', () => this.toggleDrawer('library'));
         document.getElementById('btn-close-library').addEventListener('click', () => this.closeDrawers());
 
         document.getElementById('btn-settings').addEventListener('click', () => this.toggleDrawer('settings'));
         document.getElementById('btn-close-settings').addEventListener('click', () => this.closeDrawers());
 
-        // Fullscreen Listeners
         this.dom.btnFullscreen.addEventListener('click', () => this.enterFullscreen());
         this.dom.btnExitFs.addEventListener('click', () => this.exitFullscreen());
         
-        // Listen for ANY fullscreen change (Standard, WebKit, Moz, MS)
         ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(
             eventType => document.addEventListener(eventType, () => this.handleFullscreenChange(), false)
         );
 
-        // Session Listeners
         this.dom.sessionHandle.addEventListener('click', () => {
             this.dom.sessionPanel.classList.toggle('active');
             this.closeDrawers();
@@ -68,59 +67,40 @@ const Engine = {
             this.handleSessionClick();
         });
 
-        // App Start
         this.buildLibraryUI();
         this.loadTheme(this.state.activeThemeId);
         this.startClock();
     },
 
-    // --- ROBUST SESSION LOGIC (3-Stage) ---
-    
     handleSessionClick: function() {
         const s = this.session;
-
-        // CASE 1: Start (Idle -> Running)
         if (!s.active && !s.finished) {
             s.active = true;
             s.startTime = Date.now();
-            
-            // UI
             this.dom.sessionBtn.innerText = "Stop Session";
             this.dom.sessionBtn.classList.add('stop-mode');
             this.dom.sessionHandle.classList.add('meditating');
             this.dom.sessionText.innerText = "In Progress";
-            this.dom.sessionTimer.classList.remove('finished'); // Remove green
-            
-            // Auto close panel
-            setTimeout(() => {
-                this.dom.sessionPanel.classList.remove('active');
-            }, 500);
+            this.dom.sessionTimer.classList.remove('finished');
+            setTimeout(() => { this.dom.sessionPanel.classList.remove('active'); }, 500);
             return;
         }
-
-        // CASE 2: Stop (Running -> Finished/Result)
         if (s.active) {
             s.active = false;
             s.finished = true;
-            s.elapsed = Date.now() - s.startTime; // Freeze time logic
-            
-            // UI
+            s.elapsed = Date.now() - s.startTime;
             this.dom.sessionBtn.innerText = "Start New Session";
             this.dom.sessionBtn.classList.remove('stop-mode');
             this.dom.sessionHandle.classList.remove('meditating');
             this.dom.sessionText.innerText = "Session Complete";
-            this.dom.sessionTimer.classList.add('finished'); // Turn Text Green
-            this.dom.sessionTimer.innerText = this.formatTime(s.elapsed); // Show final locked time
+            this.dom.sessionTimer.classList.add('finished');
+            this.dom.sessionTimer.innerText = this.formatTime(s.elapsed);
             return;
         }
-
-        // CASE 3: Reset (Finished -> Idle)
         if (s.finished) {
             s.finished = false;
             s.elapsed = 0;
             s.startTime = null;
-            
-            // UI
             this.dom.sessionBtn.innerText = "Begin Meditation";
             this.dom.sessionTimer.innerText = "00:00:00";
             this.dom.sessionTimer.classList.remove('finished');
@@ -128,58 +108,28 @@ const Engine = {
             return;
         }
     },
-
-    // --- ROBUST FULLSCREEN LOGIC (iPhone Support) ---
     
     enterFullscreen: function() {
         const elem = document.documentElement;
-        
-        // Try all prefixes
-        const req = elem.requestFullscreen || 
-                    elem.webkitRequestFullscreen || 
-                    elem.mozRequestFullScreen || 
-                    elem.msRequestFullscreen;
-
-        // Force UI update immediately (Better feel on iPhone even if API fails)
+        const req = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullscreen;
         document.body.classList.add('fullscreen-mode');
         this.closeDrawers();
         this.dom.sessionPanel.classList.remove('active');
-
-        if (req) {
-            req.call(elem).catch(err => console.log("Fullscreen blocked or not supported:", err));
-        }
+        if (req) req.call(elem).catch(err => console.log("Fullscreen blocked:", err));
     },
 
     exitFullscreen: function() {
-        // Try all prefixes
-        const exit = document.exitFullscreen || 
-                     document.webkitExitFullscreen || 
-                     document.mozCancelFullScreen || 
-                     document.msExitFullscreen;
-
-        if (exit) {
-            exit.call(document);
-        }
-        
-        // We rely on the event listener to remove the class, 
-        // BUT if browser denies exit, we force UI back anyway:
+        const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+        if (exit) exit.call(document);
         document.body.classList.remove('fullscreen-mode');
     },
 
     handleFullscreenChange: function() {
-        const isFullscreen = document.fullscreenElement || 
-                             document.webkitFullscreenElement || 
-                             document.mozFullScreenElement || 
-                             document.msFullscreenElement;
-
-        if (!isFullscreen) {
-            document.body.classList.remove('fullscreen-mode');
-        } else {
-            document.body.classList.add('fullscreen-mode');
-        }
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+        if (!isFullscreen) document.body.classList.remove('fullscreen-mode');
+        else document.body.classList.add('fullscreen-mode');
     },
 
-    // --- HELPER: TIME FORMATTER ---
     formatTime: function(ms) {
         const totalSecs = Math.floor(ms / 1000);
         const h = Math.floor(totalSecs / 3600);
@@ -189,7 +139,6 @@ const Engine = {
         return `${pad(h)}:${pad(m)}:${pad(s)}`;
     },
 
-    // --- DRAWERS ---
     toggleDrawer: function(type) {
         if (type === 'library') {
             this.dom.libraryDrawer.classList.add('active');
@@ -206,7 +155,6 @@ const Engine = {
         this.dom.settingsDrawer.classList.remove('active');
     },
 
-    // --- LIBRARY ---
     buildLibraryUI: function() {
         const container = this.dom.themeGrid;
         container.innerHTML = ''; 
@@ -253,31 +201,113 @@ const Engine = {
         document.body.appendChild(script);
     },
 
+    // --- UPGRADED SETTINGS BUILDER (RANGE + PALETTE + DROPDOWN) ---
     buildSettingsUI: function(themeId) {
         const container = this.dom.settingsContent;
         container.innerHTML = '';
+
         if (!this.currentThemeObj || !this.currentThemeObj.settingsConfig) {
             container.innerHTML = '<div style="color:#444; font-size:10px; text-transform:uppercase;">No Configuration</div>';
             return;
         }
+
         const config = this.currentThemeObj.settingsConfig;
+
         for (const [key, setting] of Object.entries(config)) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'setting-item';
+
+            // TYPE: RANGE (Slider)
             if (setting.type === 'range') {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'setting-item';
+                const labelRow = document.createElement('div');
+                labelRow.style.display = 'flex';
+                labelRow.style.justifyContent = 'space-between';
+                labelRow.style.marginBottom = '10px';
+
                 const label = document.createElement('span');
                 label.className = 'setting-label';
+                label.style.marginBottom = '0';
                 label.innerText = setting.label;
-                wrapper.appendChild(label);
+                
+                const valIndicator = document.createElement('span');
+                valIndicator.className = 'setting-label';
+                valIndicator.style.color = 'white';
+                
+                const currentVal = this.state.themeSettings[themeId]?.[key] || setting.default;
+                const suffix = setting.displaySuffix || '';
+                valIndicator.innerText = `${currentVal}${suffix}`;
+
+                labelRow.appendChild(label);
+                labelRow.appendChild(valIndicator);
+                wrapper.appendChild(labelRow);
+
                 const slider = document.createElement('input');
                 slider.type = 'range';
                 slider.min = setting.min;
                 slider.max = setting.max;
-                slider.value = this.state.themeSettings[themeId]?.[key] || setting.default;
-                slider.oninput = (e) => this.updateSetting(themeId, key, e.target.value);
+                slider.value = currentVal;
+                
+                slider.oninput = (e) => {
+                    valIndicator.innerText = `${e.target.value}${suffix}`;
+                    this.updateSetting(themeId, key, e.target.value);
+                };
                 wrapper.appendChild(slider);
-                container.appendChild(wrapper);
             }
+
+            // TYPE: PALETTE (Color Circles)
+            else if (setting.type === 'palette') {
+                const label = document.createElement('span');
+                label.className = 'setting-label';
+                label.innerText = setting.label;
+                wrapper.appendChild(label);
+
+                const grid = document.createElement('div');
+                grid.className = 'palette-grid';
+                
+                setting.options.forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = color;
+                    
+                    const currentVal = this.state.themeSettings[themeId]?.[key] || setting.default;
+                    if (color === currentVal) swatch.classList.add('active');
+
+                    swatch.onclick = () => {
+                        this.updateSetting(themeId, key, color);
+                        this.buildSettingsUI(themeId); // Rebuild to update border
+                    };
+                    grid.appendChild(swatch);
+                });
+                wrapper.appendChild(grid);
+            }
+
+            // TYPE: DROPDOWN (New Select Logic)
+            else if (setting.type === 'select') {
+                const label = document.createElement('span');
+                label.className = 'setting-label';
+                label.innerText = setting.label;
+                wrapper.appendChild(label);
+
+                const select = document.createElement('select');
+                select.className = 'setting-select'; // We will style this in CSS
+                
+                setting.options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.innerText = opt.text;
+                    if (opt.value == (this.state.themeSettings[themeId]?.[key] || setting.default)) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+
+                select.onchange = (e) => {
+                    this.updateSetting(themeId, key, e.target.value);
+                };
+                wrapper.appendChild(select);
+            }
+
+            container.appendChild(wrapper);
         }
     },
 
@@ -299,7 +329,6 @@ const Engine = {
 
     startClock: function() { setInterval(() => this.tick(), 1000); },
 
-    // UPDATED TICK 
     tick: function() {
         if (this.currentThemeObj) {
             const now = new Date();
@@ -309,9 +338,6 @@ const Engine = {
                 s: String(now.getSeconds()).padStart(2, '0')
             });
         }
-
-        // Only update session timer if Active (Running)
-        // If finished, it's static (Green), so we don't update it here.
         if (this.session.active) {
             const diff = Date.now() - this.session.startTime;
             this.dom.sessionTimer.innerText = this.formatTime(diff);
