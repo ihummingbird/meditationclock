@@ -4,7 +4,15 @@ const Engine = {
         { id: 'simple', name: 'Simple Digital' },
         { id: 'breathe', name: 'Deep Breathing' },
         { id: 'ios', name: 'Standby Mode' },
-        { id: 'analog', name: 'Analog Standby' } // NEW 
+        { id: 'analog', name: 'Analog Standby' },
+        { id: 'lcd', name: 'Retro LCD' },
+        { id: 'lcd2', name: 'Retro LCD 2' },
+        { id: 'lcd3', name: 'Retro LCD 3' },
+        { id: 'lcd4', name: 'Retro LCD 4' },
+        { id: 'another5', name: 'Retro LCD 5' },
+        { id: 'analog6', name: 'Retro LCD 6' },
+        { id: 'lcd7', name: 'Retro LCD 7' },
+         // NEW  
     ],
 
     state: {
