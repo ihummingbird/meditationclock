@@ -20,15 +20,13 @@
                 <span class="icon">❖</span> Library
             </button>
         </div>
-
         <div class="nav-brand">Meditation Clock</div>
-
         <div class="nav-right">
             <button id="btn-fullscreen" class="nav-btn" title="Enter Focus Mode">
                 ⛶
             </button>
             <button id="btn-settings" class="nav-btn" title="Settings">
-                ⚙️
+                ⋯
             </button>
         </div>
     </nav>
@@ -68,7 +66,54 @@
     <div id="session-panel" class="bottom-drawer">
         <div class="session-content">
             <div id="session-timer">00:00:00</div>
-            <button id="btn-session-toggle">BEGIN MEDITATION</button>
+            
+            <!-- CONTROLS ROW: Flex container to hold buttons side-by-side -->
+            <div id="controls-row" style="display: flex; gap: 10px; width: 100%; height: 50px; margin-top: 10px;">
+                
+                <!-- MAIN BUTTON -->
+                <button id="btn-session-toggle" style="flex: 1; height: 100%; white-space: nowrap;">BEGIN MEDITATION</button>
+                
+                <!-- SYNC GROUP (Hidden by default, appears on side) -->
+                <!-- We style these to match the main button exactly -->
+                <div id="sync-group" style="display: none; flex: 1; gap: 8px;">
+                    
+                    <!-- USERNAME INPUT -->
+                    <input type="text" id="user-input" placeholder="NAME" maxlength="10" style="
+                        width: 40%;
+                        height: 100%;
+                        background: transparent;
+                        border: 1px solid currentColor;
+                        color: inherit;
+                        font-family: inherit;
+                        font-size: 14px;
+                        text-align: center;
+                        border-radius: 4px; /* Matches standard btn radius usually */
+                        outline: none;
+                        text-transform: uppercase;
+                        padding: 0;
+                    ">
+                    
+                    <!-- SYNC BUTTON -->
+                    <button id="btn-sync" style="
+                        flex: 1; 
+                        height: 100%; 
+                        background: rgba(255,255,255,0.1); /* Slight highlight */
+                        border: 1px solid currentColor;
+                        color: inherit;
+                        font-family: inherit;
+                        font-weight: 600;
+                        font-size: 14px;
+                        cursor: pointer;
+                        border-radius: 4px;
+                        white-space: nowrap;
+                    ">
+                        SYNC ☁️
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tiny status message below -->
+            <div id="sync-msg" style="font-size: 10px; margin-top: 5px; opacity: 0.6; min-height: 14px; text-align: center;"></div>
         </div>
     </div>
 

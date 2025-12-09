@@ -2,7 +2,6 @@ window.ActiveTheme = {
     els: {},
 
     settingsConfig: {
-        // 1. ADDED ZOOM SLIDER
         zoom: {
             type: 'range',
             label: 'Scale Size',
@@ -13,31 +12,23 @@ window.ActiveTheme = {
         },
         tintColor: {
             type: 'palette',
-            label: 'LCD Color',
-            default: '#00d5ff',
-            options: ['#00d5ff', '#ff8000', '#ff0000', '#39ff14', '#ffffff']
+            label: 'Display Color',
+            default: '#66fcf1',
+            options: ['#66fcf1', '#ff9f0a', '#ff453a', '#32d74b', '#ffffff']
         }
     },
 
     init(stage, savedSettings = {}) {
         this.destroy();
-        // --- YOUR EXACT FONT LOADER (UNTOUCHED) ---
-        this.injectFont(`
-            @font-face {
-                font-family: 'DS-Digital', 'Segoe UI', sans-serif;
-                font-style: normal;
-                font-weight: 400;
-                font-display: swap;
-                src: url("https://cdn.jsdelivr.net/gh/keshikan/DSEG@v0.46/dist/DSEG7Classic-Regular.woff2") format("woff2"),
-                     url("https://cdn.jsdelivr.net/gh/keshikan/DSEG@v0.46/dist/DSEG7Classic-Regular.woff") format("woff");
-            }
-        `);
+        this.injectLink('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
         stage.innerHTML = this.template();
         this.cache(stage);
         
-        // Apply Settings
-        this.applyColor(savedSettings.tintColor || '#00d5ff');
+        // Add class for font styling (background is now handled by #theme-bg in CSS)
+        this.els.container.classList.add('industrial');
+        
+        this.applyColor(savedSettings.tintColor || '#66fcf1');
         this.applyZoom(savedSettings.zoom || 100);
     },
 
@@ -49,14 +40,13 @@ window.ActiveTheme = {
     },
 
     destroy() {
-        document.getElementById('theme-font-style')?.remove();
+        document.getElementById('theme-font-link')?.remove();
         this.els = {};
     },
 
-    /* helpers */
     cache(stage) {
         this.els = {
-            scaler: stage.querySelector('#lcd-scaler'), // Cache Scaler
+            scaler: stage.querySelector('#lcd-scaler'),
             container: stage.querySelector('.lcd-container'),
             time: stage.querySelector('#lcd-time'),
             seconds: stage.querySelector('#lcd-seconds'),
@@ -90,7 +80,6 @@ window.ActiveTheme = {
         this.els.fullDate.textContent = `${fullMonths[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
     },
 
-    // --- ADDED ZOOM FUNCTION ---
     applyZoom(val) {
         if (this.els.scaler) {
             this.els.scaler.style.transform = `scale(${val / 100})`;
@@ -98,30 +87,29 @@ window.ActiveTheme = {
     },
 
     applyColor(hex) {
-        const glow = hex + '80';
-        const dim = hex + '40';
-        // Safety check
         if (this.els.container) {
             this.els.container.style.setProperty('--lcd-color', hex);
-            this.els.container.style.setProperty('--lcd-glow', glow);
-            this.els.container.style.setProperty('--lcd-dim', dim);
         }
     },
 
-    injectFont(css) {
-        const style = document.createElement('style');
-        style.id = 'theme-font-style';
-        style.textContent = css;
-        document.head.appendChild(style);
+    injectLink(href) {
+        const link = document.createElement('link');
+        link.id = 'theme-font-link';
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
     },
 
     template() {
-        // WRAPPED IN ROOT & ASPECT BOX & SCALER
         return `
+            <!-- 1. BACKGROUND LAYER (Outside Scaler) -->
+            <div id="theme-bg"></div>
+
+            <!-- 2. CONTENT LAYER (Inside Scaler) -->
             <div id="lcd-root">
                 <div id="lcd-aspect-box">
                     <div id="lcd-scaler">
-                        <div class="lcd-container segment">
+                        <div class="lcd-container">
                             <div class="top-left lcd-glow">.</div>
                             <div class="top-right lcd-glow" id="lcd-full-date"></div>
                             <div class="clock-center lcd-glow">

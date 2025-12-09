@@ -1,20 +1,22 @@
 const Engine = {
+    // *** CONFIGURATION ***
+
+    // Oi! What are you looking at here? Are you looking for secrets? I know you can misuse this. Please don't. Kindly :*
+    API_URL: 'https://script.google.com/macros/s/AKfycbwHCfHaBJFXXyvASFf5x5Iy0OCiQLD38hsW4_gOGiWdiJPIURBcFovTVvDN7qShd6R5AA/exec', 
+
     // 1. REGISTRY
     themes: [
         { id: 'simple', name: 'Simple Digital' },
-        { id: 'breathe', name: 'Deep Breathing' },
+        { id: 'breathe', name: '☆ Deep Breathing' },
         { id: 'ios', name: 'Standby Mode' },
-        { id: 'analog', name: 'Analog Standby' },
+        { id: 'analog', name: '☆ Analog Standby' },
         { id: 'lcd', name: 'Retro LCD' },
-        { id: 'lcd2', name: 'Retro LCD 2' },
-        { id: 'lcd3', name: 'Retro LCD 3' },
-        { id: 'lcd4', name: 'Retro LCD 4' },
-        { id: 'another5', name: 'Retro LCD 5' },
+        { id: 'digital_clock', name: 'Simple Digital CLock' },
+        { id: 'cyberpunk_digital', name: '☆ Cyberpunk Digital' },
+        { id: 'mail', name: '☆ Nostalgia' },
         { id: 'analog6', name: 'Retro LCD 6' },
-        { id: 'lcd7', name: 'Retro LCD 7' },
-         // NEW  
+        { id: 'lcd7', name: 'Retro LCD 7' }
     ],
-
     state: {
         activeThemeId: 'simple',
         themeSettings: {}
@@ -27,9 +29,7 @@ const Engine = {
         startTime: null,
         elapsed: 0
     },
-
     currentThemeObj: null,
-
     dom: {
         stage: document.getElementById('stage'),
         cssLink: document.getElementById('theme-stylesheet'),
@@ -41,12 +41,17 @@ const Engine = {
         
         btnFullscreen: document.getElementById('btn-fullscreen'),
         btnExitFs: document.getElementById('btn-exit-fs'),
-
         sessionHandle: document.getElementById('session-handle'),
         sessionPanel: document.getElementById('session-panel'),
         sessionTimer: document.getElementById('session-timer'),
         sessionBtn: document.getElementById('btn-session-toggle'),
-        sessionText: document.getElementById('session-status-text')
+        sessionText: document.getElementById('session-status-text'),
+
+        // NEW ELEMENTS
+        syncGroup: document.getElementById('sync-group'),
+        userInput: document.getElementById('user-input'),
+        syncBtn: document.getElementById('btn-sync'),
+        syncMsg: document.getElementById('sync-msg')
     },
 
     init: function() {
@@ -55,10 +60,8 @@ const Engine = {
         // Listeners
         document.getElementById('btn-library').addEventListener('click', () => this.toggleDrawer('library'));
         document.getElementById('btn-close-library').addEventListener('click', () => this.closeDrawers());
-
         document.getElementById('btn-settings').addEventListener('click', () => this.toggleDrawer('settings'));
         document.getElementById('btn-close-settings').addEventListener('click', () => this.closeDrawers());
-
         this.dom.btnFullscreen.addEventListener('click', () => this.enterFullscreen());
         this.dom.btnExitFs.addEventListener('click', () => this.exitFullscreen());
         
@@ -75,6 +78,13 @@ const Engine = {
             this.handleSessionClick();
         });
 
+        // SYNC LISTENER
+        this.dom.syncBtn.addEventListener('click', () => this.uploadSession());
+
+        // Load cached username
+        const savedUser = localStorage.getItem('meditation_user');
+        if(savedUser) this.dom.userInput.value = savedUser;
+
         this.buildLibraryUI();
         this.loadTheme(this.state.activeThemeId);
         this.startClock();
@@ -82,41 +92,104 @@ const Engine = {
 
     handleSessionClick: function() {
         const s = this.session;
+
+        // 1. START SESSION
         if (!s.active && !s.finished) {
             s.active = true;
             s.startTime = Date.now();
+            
+            // UI
             this.dom.sessionBtn.innerText = "Stop Session";
             this.dom.sessionBtn.classList.add('stop-mode');
             this.dom.sessionHandle.classList.add('meditating');
             this.dom.sessionText.innerText = "In Progress";
             this.dom.sessionTimer.classList.remove('finished');
+            
+            // Hide Sync controls when running
+            this.dom.syncGroup.style.display = 'none'; 
+            this.dom.syncMsg.innerText = "";
+            
             setTimeout(() => { this.dom.sessionPanel.classList.remove('active'); }, 500);
             return;
         }
+
+        // 2. FINISH SESSION
         if (s.active) {
             s.active = false;
             s.finished = true;
             s.elapsed = Date.now() - s.startTime;
-            this.dom.sessionBtn.innerText = "Start New Session";
+            
+            // UI
+            this.dom.sessionBtn.innerText = "New Session"; // Shortened text to fit side-by-side
             this.dom.sessionBtn.classList.remove('stop-mode');
             this.dom.sessionHandle.classList.remove('meditating');
             this.dom.sessionText.innerText = "Session Complete";
             this.dom.sessionTimer.classList.add('finished');
             this.dom.sessionTimer.innerText = this.formatTime(s.elapsed);
+
+            // SHOW SYNC CONTROLS (Flex)
+            this.dom.syncGroup.style.display = 'flex';
             return;
         }
+
+        // 3. RESET (Start New)
         if (s.finished) {
             s.finished = false;
             s.elapsed = 0;
             s.startTime = null;
+            
             this.dom.sessionBtn.innerText = "Begin Meditation";
             this.dom.sessionTimer.innerText = "00:00:00";
             this.dom.sessionTimer.classList.remove('finished');
             this.dom.sessionText.innerText = "Start Session";
+            
+            // Hide Sync controls
+            this.dom.syncGroup.style.display = 'none';
+            this.dom.syncMsg.innerText = "";
             return;
         }
     },
-    
+
+        uploadSession: function() {
+        const user = this.dom.userInput.value.trim() || 'ANONYMOUS';
+        const durationSecs = Math.floor(this.session.elapsed / 1000);
+        
+        localStorage.setItem('meditation_user', user);
+
+        this.dom.syncBtn.innerText = "...";
+        this.dom.syncBtn.disabled = true;
+
+        // --- THE FIX IS HERE ---
+        // We removed the 'headers' line. 
+        // This stops the browser from asking for permission first.
+        fetch(this.API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                username: user,
+                duration: durationSecs
+            })
+        })
+        .then(() => {
+            // With 'no-cors', we can't see the response, so we assume success.
+            this.dom.syncBtn.innerText = "✓";
+            this.dom.syncMsg.innerText = `Saved ${this.formatTime(this.session.elapsed)}`;
+            this.dom.syncMsg.style.color = '#4caf50';
+            setTimeout(() => {
+                this.dom.syncBtn.innerText = "SYNC ☁️";
+                this.dom.syncBtn.disabled = false;
+            }, 3000);
+        })
+        .catch(err => {
+            console.error(err);
+            this.dom.syncBtn.innerText = "Err";
+            this.dom.syncBtn.disabled = false;
+            this.dom.syncMsg.innerText = "Sync Failed";
+            this.dom.syncMsg.style.color = 'red';
+        });
+    },
+
+
     enterFullscreen: function() {
         const elem = document.documentElement;
         const req = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullscreen;
@@ -125,19 +198,16 @@ const Engine = {
         this.dom.sessionPanel.classList.remove('active');
         if (req) req.call(elem).catch(err => console.log("Fullscreen blocked:", err));
     },
-
     exitFullscreen: function() {
         const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
         if (exit) exit.call(document);
         document.body.classList.remove('fullscreen-mode');
     },
-
     handleFullscreenChange: function() {
         const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         if (!isFullscreen) document.body.classList.remove('fullscreen-mode');
         else document.body.classList.add('fullscreen-mode');
     },
-
     formatTime: function(ms) {
         const totalSecs = Math.floor(ms / 1000);
         const h = Math.floor(totalSecs / 3600);
@@ -146,7 +216,6 @@ const Engine = {
         const pad = (n) => String(n).padStart(2, '0');
         return `${pad(h)}:${pad(m)}:${pad(s)}`;
     },
-
     toggleDrawer: function(type) {
         if (type === 'library') {
             this.dom.libraryDrawer.classList.add('active');
@@ -157,12 +226,10 @@ const Engine = {
         }
         this.dom.sessionPanel.classList.remove('active');
     },
-
     closeDrawers: function() {
         this.dom.libraryDrawer.classList.remove('active');
         this.dom.settingsDrawer.classList.remove('active');
     },
-
     buildLibraryUI: function() {
         const container = this.dom.themeGrid;
         container.innerHTML = ''; 
@@ -170,13 +237,11 @@ const Engine = {
             const tile = document.createElement('div');
             tile.className = 'theme-tile';
             if (theme.id === this.state.activeThemeId) tile.classList.add('active');
-
             const text = document.createElement('span');
             text.className = 'tile-text';
             text.innerText = theme.name;
             const dot = document.createElement('div');
             dot.className = 'tile-dot';
-            
             tile.appendChild(text);
             tile.appendChild(dot);
             tile.addEventListener('click', () => {
@@ -186,7 +251,6 @@ const Engine = {
             container.appendChild(tile);
         });
     },
-
     loadTheme: function(themeId) {
         if (this.currentThemeObj && this.currentThemeObj.destroy) this.currentThemeObj.destroy();
         this.state.activeThemeId = themeId;
@@ -208,97 +272,72 @@ const Engine = {
         };
         document.body.appendChild(script);
     },
-
-    // --- UPGRADED SETTINGS BUILDER (RANGE + PALETTE + DROPDOWN) ---
     buildSettingsUI: function(themeId) {
         const container = this.dom.settingsContent;
         container.innerHTML = '';
-
         if (!this.currentThemeObj || !this.currentThemeObj.settingsConfig) {
             container.innerHTML = '<div style="color:#444; font-size:10px; text-transform:uppercase;">No Configuration</div>';
             return;
         }
-
         const config = this.currentThemeObj.settingsConfig;
-
         for (const [key, setting] of Object.entries(config)) {
             const wrapper = document.createElement('div');
             wrapper.className = 'setting-item';
-
-            // TYPE: RANGE (Slider)
             if (setting.type === 'range') {
                 const labelRow = document.createElement('div');
                 labelRow.style.display = 'flex';
                 labelRow.style.justifyContent = 'space-between';
                 labelRow.style.marginBottom = '10px';
-
                 const label = document.createElement('span');
                 label.className = 'setting-label';
                 label.style.marginBottom = '0';
                 label.innerText = setting.label;
-                
                 const valIndicator = document.createElement('span');
                 valIndicator.className = 'setting-label';
                 valIndicator.style.color = 'white';
-                
                 const currentVal = this.state.themeSettings[themeId]?.[key] || setting.default;
                 const suffix = setting.displaySuffix || '';
                 valIndicator.innerText = `${currentVal}${suffix}`;
-
                 labelRow.appendChild(label);
                 labelRow.appendChild(valIndicator);
                 wrapper.appendChild(labelRow);
-
                 const slider = document.createElement('input');
                 slider.type = 'range';
                 slider.min = setting.min;
                 slider.max = setting.max;
                 slider.value = currentVal;
-                
                 slider.oninput = (e) => {
                     valIndicator.innerText = `${e.target.value}${suffix}`;
                     this.updateSetting(themeId, key, e.target.value);
                 };
                 wrapper.appendChild(slider);
-            }
-
-            // TYPE: PALETTE (Color Circles)
-            else if (setting.type === 'palette') {
+            } else if (setting.type === 'palette') {
                 const label = document.createElement('span');
                 label.className = 'setting-label';
                 label.innerText = setting.label;
                 wrapper.appendChild(label);
-
                 const grid = document.createElement('div');
                 grid.className = 'palette-grid';
-                
                 setting.options.forEach(color => {
                     const swatch = document.createElement('div');
                     swatch.className = 'color-swatch';
                     swatch.style.backgroundColor = color;
-                    
                     const currentVal = this.state.themeSettings[themeId]?.[key] || setting.default;
                     if (color === currentVal) swatch.classList.add('active');
-
                     swatch.onclick = () => {
                         this.updateSetting(themeId, key, color);
-                        this.buildSettingsUI(themeId); // Rebuild to update border
+                        this.buildSettingsUI(themeId); 
                     };
                     grid.appendChild(swatch);
                 });
                 wrapper.appendChild(grid);
-            }
-
-            // TYPE: DROPDOWN (New Select Logic)
-            else if (setting.type === 'select') {
+            } else if (setting.type === 'select') {
                 const label = document.createElement('span');
                 label.className = 'setting-label';
                 label.innerText = setting.label;
                 wrapper.appendChild(label);
-
                 const select = document.createElement('select');
-                select.className = 'setting-select'; // We will style this in CSS
-                
+                select.className = 'setting-select'; 
                 setting.options.forEach(opt => {
                     const option = document.createElement('option');
                     option.value = opt.value;
@@ -308,35 +347,28 @@ const Engine = {
                     }
                     select.appendChild(option);
                 });
-
                 select.onchange = (e) => {
                     this.updateSetting(themeId, key, e.target.value);
                 };
                 wrapper.appendChild(select);
             }
-
             container.appendChild(wrapper);
         }
     },
-
     updateSetting: function(themeId, key, value) {
         if (!this.state.themeSettings[themeId]) this.state.themeSettings[themeId] = {};
         this.state.themeSettings[themeId][key] = value;
         this.saveState();
         if (this.currentThemeObj.onSettingsChange) this.currentThemeObj.onSettingsChange(key, value);
     },
-
     saveState: function() {
         localStorage.setItem('meditation_os_state', JSON.stringify(this.state));
     },
-
     loadState: function() {
         const saved = localStorage.getItem('meditation_os_state');
         if (saved) this.state = { ...this.state, ...JSON.parse(saved) };
     },
-
     startClock: function() { setInterval(() => this.tick(), 1000); },
-
     tick: function() {
         if (this.currentThemeObj) {
             const now = new Date();
