@@ -1,0 +1,162 @@
+:root {
+    --bg: #050505;
+    --card-bg: #111;
+    --border: #222;
+    /* I changed accent to Blue/Cyan to match your screenshots better */
+    --accent: #00bcd4; 
+    --text-main: #fff;
+    --text-dim: #666;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+/* CONTAINER */
+.dashboard {
+    width: 100%;
+    max-width: 500px; /* Matched to mobile width */
+    animation: fadeIn 0.8s ease;
+}
+
+/* HEADER */
+.nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.back-link { text-decoration: none; color: var(--text-dim); font-size: 14px; transition: 0.2s; }
+.back-link:hover { color: #fff; }
+.version-tag { font-size: 10px; color: #333; letter-spacing: 1px; }
+
+/* USER PROFILE CARD */
+.profile-card {
+    background: linear-gradient(145deg, #151515, #0a0a0a);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: border-color 0.5s ease;
+}
+
+.user-info h1 { 
+    margin: 0; 
+    font-size: 24px; 
+    font-weight: 800; 
+    letter-spacing: -1px; 
+    cursor: pointer;
+    border-bottom: 1px dotted #333;
+    display: inline-block;
+}
+.user-info h1:hover { color: var(--accent); border-color: var(--accent); }
+
+.user-info p { 
+    margin: 0 0 5px 0; 
+    color: var(--accent); 
+    font-size: 11px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 2px; 
+}
+
+.profile-icon { font-size: 32px; filter: grayscale(100%); transition: 0.5s; }
+.profile-card:hover .profile-icon { filter: grayscale(0%); transform: scale(1.1); }
+
+/* SEARCH BOX */
+#user-search {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--accent);
+    color: white;
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 800;
+    width: 100%;
+    outline: none;
+    display: none; /* Hidden by default */
+    text-transform: uppercase;
+}
+
+/* METRICS GRID */
+.grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px; 
+    margin-bottom: 20px; 
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    text-align: center;
+    transition: transform 0.2s;
+}
+.stat-card:hover { border-color: #333; transform: translateY(-2px); }
+
+.stat-num { font-size: 24px; font-weight: 700; display: block; margin-bottom: 4px; color: #eee; }
+.stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+/* CHART CONTAINER */
+.chart-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 20px;
+    height: 220px;
+    position: relative;
+}
+
+/* HISTORY LIST */
+.history-section h3 { 
+    font-size: 12px; 
+    color: var(--text-dim); 
+    margin-bottom: 15px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+.history-item:last-child { border-bottom: none; }
+.date { color: #555; }
+.duration { font-weight: 600; color: #ddd; font-variant-numeric: tabular-nums; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* DISTRIBUTION TOGGLES */
+.toggle-btn {
+    background: transparent;
+    border: none;
+    color: #666;
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.toggle-btn:hover { color: #fff; }
+
+.toggle-btn.active {
+    background: #333;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}

@@ -4,104 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mindful Stats</title>
+    
+    <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #050505;
-            --card-bg: #111;
-            --accent: #a855f7; /* Purple */
-            --accent-glow: rgba(168, 85, 247, 0.4);
-            --text-main: #fff;
-            --text-dim: #666;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-        }
-
-        .dashboard {
-            width: 100%;
-            max-width: 600px;
-            animation: fadeIn 0.8s ease;
-        }
-
-        /* HEADER */
-        .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-        .back-link { text-decoration: none; color: var(--text-dim); font-size: 14px; transition: 0.2s; }
-        .back-link:hover { color: #fff; }
-
-        /* USER PROFILE CARD */
-        .profile-card {
-            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
-            border: 1px solid #333;
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        
-        .user-info h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -1px; }
-        .user-info p { margin: 5px 0 0; color: var(--accent); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        
-        /* SEARCH BOX (Hidden by default) */
-        #user-search {
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid #444;
-            color: white;
-            font-size: 24px;
-            font-weight: 800;
-            width: 200px;
-            outline: none;
-            display: none;
-        }
-
-        /* METRICS GRID */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid #222;
-            text-align: center;
-        }
-        .stat-num { font-size: 28px; font-weight: 700; display: block; margin-bottom: 5px; }
-        .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; }
-
-        /* CHART CONTAINER */
-        .chart-container {
-            background: var(--card-bg);
-            border: 1px solid #222;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            height: 250px;
-        }
-
-        /* HISTORY LIST */
-        .history-section h3 { font-size: 14px; color: var(--text-dim); margin-bottom: 15px; text-transform: uppercase; }
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 0;
-            border-bottom: 1px solid #222;
-        }
-        .date { color: #888; font-size: 14px; }
-        .duration { font-weight: 600; font-variant-numeric: tabular-nums; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="stats.css">
 </head>
 <body>
 
@@ -109,20 +20,20 @@
         <!-- NAV -->
         <div class="nav">
             <a href="index.html" class="back-link">← Clock</a>
-            <div style="font-size: 12px; color: #444;">SYNCED CLOUD v1.0</div>
+            <div class="version-tag">SYNCED CLOUD v1.0</div>
         </div>
 
         <!-- PROFILE -->
         <div class="profile-card">
             <div class="user-info">
                 <p id="rank-badge">NOVICE</p>
-                <h1 id="username-display" onclick="toggleSearch()" style="cursor: pointer; border-bottom: 1px dotted #444;">LOADING...</h1>
-                <input type="text" id="user-search" placeholder="Enter Username..." onblur="confirmSearch()" onkeypress="handleEnter(event)">
+                <h1 id="username-display" title="Click to switch user">LOADING...</h1>
+                <input type="text" id="user-search" placeholder="Enter Username..." autocomplete="off">
             </div>
-            <div style="font-size: 40px;">🧘</div>
+            <div class="profile-icon">🧘</div>
         </div>
 
-        <!-- STATS -->
+        <!-- STATS GRID -->
         <div class="grid">
             <div class="stat-card">
                 <span class="stat-num" id="total-hours">0</span>
@@ -138,7 +49,7 @@
             </div>
             <div class="stat-card">
                 <span class="stat-num" id="longest-streak">0</span>
-                <span class="stat-label">Day Streak</span>
+                <span class="stat-label">Active Days</span>
             </div>
         </div>
 
@@ -147,207 +58,45 @@
             <canvas id="activityChart"></canvas>
         </div>
 
+        <!-- NEW: DISTRIBUTION CHART -->
+        <div class="distribution-section" style="margin-top: 20px; margin-bottom: 20px;">
+            <div class="dist-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; font-size:12px; color:#666; text-transform:uppercase; letter-spacing:1px;">Distribution</h3>
+                <div class="toggle-group" style="background:#111; padding:4px; border-radius:8px; border:1px solid #333;">
+                    <button id="btn-daily" class="toggle-btn active">Daily</button>
+                    <button id="btn-hourly" class="toggle-btn">Hourly</button>
+                </div>
+            </div>
+            <div class="chart-container" style="height: 180px;">
+                <canvas id="distChart"></canvas>
+            </div>
+        </div>
+
+        
+
+        <!-- NEW: RECORD DURATION DISTRIBUTION -->
+        <div class="distribution-section" style="margin-top: 20px; margin-bottom: 20px;">
+            <div class="dist-header" style="margin-bottom:15px;">
+                <h3 style="margin:0; font-size:12px; color:#666; text-transform:uppercase; letter-spacing:1px;">Session Length</h3>
+            </div>
+            <div class="chart-container" style="height: 180px;">
+                <canvas id="durationChart"></canvas>
+            </div>
+        </div>
+
+        
+
         <!-- HISTORY -->
         <div class="history-section">
             <h3>Recent Flows</h3>
             <div id="history-list">
                 <!-- Javascript will populate this -->
+                <div style="color: #444; font-size: 12px;">Loading history...</div>
             </div>
         </div>
     </div>
 
-    <script>
-        // *** CONFIGURATION ***
-        
-        // Oi! What are you looking at here? Are you looking for secrets? I know you can misuse this. Please don't. Kindly :*
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwHCfHaBJFXXyvASFf5x5Iy0OCiQLD38hsW4_gOGiWdiJPIURBcFovTVvDN7qShd6R5AA/exec'; 
-
-        // App State
-        let currentUser = localStorage.getItem('meditation_user') || 'HUMMINGBIRD';
-        let rawData = [];
-        let myChart = null;
-
-        // Init
-        document.getElementById('username-display').innerText = currentUser;
-        fetchData();
-
-        function fetchData() {
-            // Note: No 'mode: no-cors' here. We need the data!
-            fetch(API_URL)
-                .then(res => res.json())
-                .then(data => {
-                    console.log("Data received:", data); // Debugging line
-                    rawData = data;
-                    renderDashboard();
-                })
-                .catch(err => {
-                    console.error("Error fetching data:", err);
-                    document.getElementById('history-list').innerHTML = 
-                        '<div style="text-align:center; color:red">Error loading data.<br>Check console.</div>';
-                });
-        }
-
-
-        function renderDashboard() {
-            // 1. FILTER DATA
-            // Row Format: [Timestamp, Username, Duration, DateString]
-            const mySessions = rawData.filter(row => row[1] === currentUser.toUpperCase());
-            
-            // 2. CALCULATE METRICS
-            const totalCount = mySessions.length;
-            const totalSeconds = mySessions.reduce((acc, row) => acc + Number(row[2]), 0);
-            const avgSeconds = totalCount ? Math.floor(totalSeconds / totalCount) : 0;
-
-            // Hours
-            const hours = (totalSeconds / 3600).toFixed(1);
-            
-            // Rank Logic
-            let rank = "NOVICE";
-            if(hours > 5) rank = "APPRENTICE";
-            if(hours > 20) rank = "ADEPT";
-            if(hours > 50) rank = "EXPERT";
-            if(hours > 100) rank = "MASTER";
-            if(hours > 500) rank = "GRANDMASTER";
-            if(hours > 1000) rank = "ZEN LEGEND";
-
-            // Streak Logic (Simplified)
-            // We create a Set of unique dates
-            const dates = [...new Set(mySessions.map(row => new Date(row[0]).toDateString()))];
-            // (Real streak logic is complex, for now we just show total active days)
-            const activeDays = dates.length;
-
-            // 3. UPDATE DOM
-            document.getElementById('total-hours').innerText = hours;
-            document.getElementById('total-sessions').innerText = totalCount;
-            document.getElementById('avg-time').innerText = Math.floor(avgSeconds / 60) + "m";
-            document.getElementById('longest-streak').innerText = activeDays; // Showing Total Active Days for simplicity
-            document.getElementById('rank-badge').innerText = rank;
-            document.querySelector('.profile-card').style.borderColor = getRankColor(rank);
-            document.getElementById('rank-badge').style.color = getRankColor(rank);
-
-            renderChart(mySessions);
-            renderHistory(mySessions);
-        }
-
-        function renderChart(sessions) {
-            const ctx = document.getElementById('activityChart').getContext('2d');
-            
-            // Get last 7 days dates
-            const last7Days = [];
-            for (let i=6; i>=0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                last7Days.push(d.toDateString());
-            }
-
-            // Sum minutes for each day
-            const dailyMinutes = last7Days.map(dateStr => {
-                // Find all sessions that match this date string (using substring match or exact match depending on format)
-                // Google Script returns "Wed Dec 09 2024"
-                const daysSessions = sessions.filter(row => row[3].includes(dateStr.substring(0, 10))); 
-                const seconds = daysSessions.reduce((acc, row) => acc + Number(row[2]), 0);
-                return Math.floor(seconds / 60);
-            });
-
-            // Destroy old chart if exists
-            if(myChart) myChart.destroy();
-
-            // Create Gradient
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(168, 85, 247, 0.5)'); // Purple
-            gradient.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
-
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: last7Days.map(d => d.substring(0, 3)), // Mon, Tue...
-                    datasets: [{
-                        label: 'Minutes',
-                        data: dailyMinutes,
-                        borderColor: '#a855f7',
-                        backgroundColor: gradient,
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#111',
-                        pointBorderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            grid: { color: '#222' },
-                            ticks: { color: '#666' }
-                        },
-                        x: { 
-                            grid: { display: false },
-                            ticks: { color: '#666' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderHistory(sessions) {
-            const list = document.getElementById('history-list');
-            list.innerHTML = '';
-            // Show last 5
-            sessions.slice().reverse().slice(0, 5).forEach(row => {
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <span class="date">${row[3]}</span>
-                    <span class="duration">${Math.floor(row[2]/60)}m ${row[2]%60}s</span>
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        // Rank Colors
-        function getRankColor(rank) {
-            const colors = {
-                "NOVICE": "#666",
-                "APPRENTICE": "#fff",
-                "ADEPT": "#4caf50", // Green
-                "EXPERT": "#2196f3", // Blue
-                "MASTER": "#a855f7", // Purple
-                "GRANDMASTER": "#ff9800", // Orange
-                "ZEN LEGEND": "#ff0055" // Red
-            };
-            return colors[rank] || "#fff";
-        }
-
-        // Search Interaction
-        function toggleSearch() {
-            document.getElementById('username-display').style.display = 'none';
-            const input = document.getElementById('user-search');
-            input.style.display = 'block';
-            input.value = currentUser;
-            input.focus();
-        }
-
-        function confirmSearch() {
-            const input = document.getElementById('user-search');
-            const val = input.value.trim().toUpperCase();
-            if(val) {
-                currentUser = val;
-                localStorage.setItem('meditation_user', currentUser);
-                document.getElementById('username-display').innerText = currentUser;
-                renderDashboard(); // Re-render with new user
-            }
-            input.style.display = 'none';
-            document.getElementById('username-display').style.display = 'block';
-        }
-
-        function handleEnter(e) {
-            if(e.key === 'Enter') confirmSearch();
-        }
-
-    </script>
+    <!-- LOGIC -->
+    <script src="stats.js"></script>
 </body>
 </html>

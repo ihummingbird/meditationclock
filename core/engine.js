@@ -11,11 +11,16 @@ const Engine = {
         { id: 'ios', name: 'Standby Mode' },
         { id: 'analog', name: '☆ Analog Standby' },
         { id: 'lcd', name: 'Retro LCD' },
-        { id: 'digital_clock', name: 'Simple Digital CLock' },
+        { id: 'industrial_digital_clock', name: 'Industrial Digital Clock' },
         { id: 'cyberpunk_digital', name: '☆ Cyberpunk Digital' },
         { id: 'mail', name: '☆ Nostalgia' },
-        { id: 'analog6', name: 'Retro LCD 6' },
-        { id: 'lcd7', name: 'Retro LCD 7' }
+        { id: 'circular', name: '☆ Circular' },
+        { id: 'auroras_glass', name: '☆ Auroras Glass' },
+        { id: 'zen_orbit', name: '☆ Zen Orbit' },
+        { id: 'solstice_prism', name: 'Solstice Prism' },
+        { id: 'horizon_loom', name: 'Horizon Loom' }
+
+        
     ],
     state: {
         activeThemeId: 'simple',
@@ -48,6 +53,7 @@ const Engine = {
         sessionText: document.getElementById('session-status-text'),
 
         // NEW ELEMENTS
+        controlsRow: document.getElementById('controls-row'), // <--- ADDED THIS REFERENCE
         syncGroup: document.getElementById('sync-group'),
         userInput: document.getElementById('user-input'),
         syncBtn: document.getElementById('btn-sync'),
@@ -105,8 +111,11 @@ const Engine = {
             this.dom.sessionText.innerText = "In Progress";
             this.dom.sessionTimer.classList.remove('finished');
             
-            // Hide Sync controls when running
-            this.dom.syncGroup.style.display = 'none'; 
+            // ENSURE WE ARE IN BIG MODE (Remove class)
+            this.dom.controlsRow.classList.remove('sync-layout'); 
+            // Also ensure specific display style is cleared so CSS class handles it
+            this.dom.syncGroup.style.display = ''; 
+
             this.dom.syncMsg.innerText = "";
             
             setTimeout(() => { this.dom.sessionPanel.classList.remove('active'); }, 500);
@@ -120,15 +129,16 @@ const Engine = {
             s.elapsed = Date.now() - s.startTime;
             
             // UI
-            this.dom.sessionBtn.innerText = "New Session"; // Shortened text to fit side-by-side
+            this.dom.sessionBtn.innerText = "New Session"; 
             this.dom.sessionBtn.classList.remove('stop-mode');
             this.dom.sessionHandle.classList.remove('meditating');
             this.dom.sessionText.innerText = "Session Complete";
             this.dom.sessionTimer.classList.add('finished');
             this.dom.sessionTimer.innerText = this.formatTime(s.elapsed);
 
-            // SHOW SYNC CONTROLS (Flex)
-            this.dom.syncGroup.style.display = 'flex';
+            // ACTIVATE SHAPE SHIFT (Morph to Small Mode)
+            this.dom.controlsRow.classList.add('sync-layout'); 
+            
             return;
         }
 
@@ -143,14 +153,15 @@ const Engine = {
             this.dom.sessionTimer.classList.remove('finished');
             this.dom.sessionText.innerText = "Start Session";
             
-            // Hide Sync controls
-            this.dom.syncGroup.style.display = 'none';
+            // RETURN TO BIG MODE (Morph back to Big)
+            this.dom.controlsRow.classList.remove('sync-layout');
+            
             this.dom.syncMsg.innerText = "";
             return;
         }
     },
 
-        uploadSession: function() {
+    uploadSession: function() {
         const user = this.dom.userInput.value.trim() || 'ANONYMOUS';
         const durationSecs = Math.floor(this.session.elapsed / 1000);
         
@@ -159,9 +170,6 @@ const Engine = {
         this.dom.syncBtn.innerText = "...";
         this.dom.syncBtn.disabled = true;
 
-        // --- THE FIX IS HERE ---
-        // We removed the 'headers' line. 
-        // This stops the browser from asking for permission first.
         fetch(this.API_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -171,7 +179,6 @@ const Engine = {
             })
         })
         .then(() => {
-            // With 'no-cors', we can't see the response, so we assume success.
             this.dom.syncBtn.innerText = "✓";
             this.dom.syncMsg.innerText = `Saved ${this.formatTime(this.session.elapsed)}`;
             this.dom.syncMsg.style.color = '#4caf50';

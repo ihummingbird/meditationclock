@@ -338,3 +338,133 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cur
     border-color: white;
     outline: none;
 }
+
+/* --- HYBRID SESSION CONTROLS --- */
+
+#controls-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    /* Max width allows the big button to breathe, but constrains the form */
+    max-width: 600px; 
+    margin: 20px auto 0;
+    padding: 0 10px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- STATE 1: THE "BIG" BUTTON (Default) --- */
+#btn-session-toggle {
+    /* Large & Proud */
+    padding: 15px 40px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    border-radius: 50px;
+    
+    background: transparent;
+    border: 1px solid #ffffff;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    
+    /* Smooth Morphing */
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    
+    /* Default Flex: fit content */
+    flex: 0 0 auto; 
+    height: auto; 
+}
+
+#btn-session-toggle:hover {
+    background: white;
+    color: black;
+}
+
+#btn-session-toggle.stop-mode {
+    border-color: #ff5f57;
+    color: #ff5f57;
+}
+#btn-session-toggle.stop-mode:hover {
+    background: #ff5f57;
+    color: white;
+}
+
+/* --- STATE 2: THE "SHRUNK" LAYOUT (When Sync is visible) --- */
+
+/* When the parent has class .sync-layout, we force the button to shrink */
+#controls-row.sync-layout #btn-session-toggle {
+    height: 46px;        /* Fixed height to match inputs */
+    padding: 0 20px;     /* Reduce padding */
+    font-size: 11px;     /* Smaller text */
+    letter-spacing: 1.5px;
+    border-color: rgba(255, 255, 255, 0.3); /* Dimmer border to match group */
+    background: transparent;
+    color: white;
+    min-width: 140px;    /* Ensure text fits */
+}
+
+/* Make sure hover effects still work in small mode */
+#controls-row.sync-layout #btn-session-toggle:hover {
+    border-color: white;
+    background: rgba(255,255,255,0.05);
+    color: white;
+}
+
+/* --- THE SYNC GROUP (Inputs) --- */
+#sync-group {
+    display: none; /* Hidden by default */
+    flex: 1;
+    gap: 8px;
+    height: 46px; /* Matches the shrunk button height */
+    opacity: 0;
+    transform: translateX(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Animation for appearing */
+#controls-row.sync-layout #sync-group {
+    display: flex;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* --- INPUT STYLES (Always sleek) --- */
+#user-input {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 100px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    outline: none;
+    padding: 0 15px;
+}
+#user-input:focus { border-color: white; background: rgba(255,255,255,0.05); }
+
+#btn-sync {
+    flex: 0 0 auto;
+    height: 100%;
+    padding: 0 20px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 100px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+#btn-sync:hover { background: white; color: black; border-color: white; }

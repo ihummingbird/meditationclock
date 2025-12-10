@@ -12,53 +12,39 @@ window.ActiveTheme = {
         },
         tintColor: {
             type: 'palette',
-            label: 'LCD Color',
-            default: '#00d5ff',
-            options: ['#00d5ff', '#ff8000', '#ff0000', '#39ff14', '#ffffff']
+            label: 'Text Color',
+            default: '#66fcf1', // Default Industrial Cyan
+            options: ['#66fcf1', '#ff0000', '#00ff00', '#ffa500', '#ffffff', '#ff00ff']
         }
     },
 
     init(stage, savedSettings = {}) {
         this.destroy();
-        
-        // --- SAFE FONT DEFINITION (UNTOUCHED) ---
-        this.injectFont(`
-            @font-face {
-                font-family: 'DS-Digital', 'Segoe UI', sans-serif;
-                font-style: normal;
-                font-weight: 400;
-                font-display: swap;
-                src: url("https://cdn.jsdelivr.net/gh/keshikan/DSEG@v0.46/dist/DSEG7Classic-Regular.woff2") format("woff2"),
-                     url("https://cdn.jsdelivr.net/gh/keshikan/DSEG@v0.46/dist/DSEG7Classic-Regular.woff") format("woff");
-            }
-        `);
 
-        // --- CSS STYLES ---
-        // Note: I bumped the sizes significantly here to match the 'Previous' look
+        // 1. Load Font
+        this.injectLink('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        // 2. Inject CSS
         this.injectStyles(`
-            @import url('https://fonts.cdnfonts.com/css/ds-digital');
+            /* --- RESET --- */
+            body { margin: 0; overflow: hidden; }
 
-            :root {
-                --lcd-color: #00d5ff;
-                --lcd-glow: rgba(0, 213, 255, 0.5);
-                --lcd-dim: rgba(0, 213, 255, 0.2);
-            }
-
-            body { margin: 0; background: #000; overflow: hidden; }
-
-            /* --- ROOT & ASPECT RATIO SETUP --- */
+            /* --- 1. ROOT CONTAINER (Background goes here now) --- */
             #lcd-root {
                 position: fixed; top: 0; left: 0;
                 width: 100vw; height: 100vh;
                 display: flex; justify-content: center; align-items: center;
-                background: #000;
+                
+                /* MOVED BACKGROUND HERE so it fills the screen */
+                background: linear-gradient(135deg, #0b0c10 0%, #1f2833 100%);
             }
 
+            /* --- 2. ASPECT BOX (Transparent now) --- */
             #lcd-aspect-box {
                 position: relative;
                 width: min(100vw, 177.78vh); 
                 height: min(56.25vw, 100vh);
-                background: #000;
+                background: transparent; /* Seamless with root */
             }
 
             #lcd-scaler {
@@ -67,36 +53,33 @@ window.ActiveTheme = {
                 transform-origin: center center;
             }
 
-            /* --- MAIN LAYOUT --- */
+            /* --- 3. TYPOGRAPHY & COLORS --- */
             .lcd-container {
                 display: grid;
-                grid-template-rows: 15% 1fr 15%; /* Adjusted rows to give clock more room */
+                grid-template-rows: 15% 1fr 15%;
                 grid-template-columns: 1fr 2fr 1fr;
                 width: 100%; height: 100%;
-                padding: 1vmin; /* Reduced padding to maximize size */
+                padding: 1vmin;
                 box-sizing: border-box;
-                font-family: 'DS-Digital', 'Segoe UI', sans-serif;
-                color: var(--lcd-color);
+                
+                font-family: 'Share Tech Mono', 'Consolas', monospace;
+                
+                /* USE VARIABLE FOR COLOR PICKER */
+                color: var(--lcd-color, #66fcf1);
+                letter-spacing: 0.05em;
             }
 
-            /* --- VISUALS --- */
-            .lcd-glow { text-shadow: 0 0 10px var(--lcd-dim), 0 0 20px var(--lcd-glow); }
-            .lcd-dim { opacity: 0.25; }
-            #lcd-am.active, #lcd-pm.active { opacity: 1; text-shadow: 0 0 15px var(--lcd-glow); }
-
-            /* --- RESTORED LARGE SIZES --- */
-            /* Using larger vmin values to mimic the old vw impact */
-            
+            /* --- 4. SIZING (Big sizes kept) --- */
             .top-left, .top-right, .bottom-left, .bottom-right { 
-                font-size: 5vmin; /* Increased from 3 to 5 */
+                font-size: 5vmin; 
                 text-transform: uppercase; 
                 white-space: nowrap;
                 align-self: center;
+                text-shadow: none;
             }
 
             .top-left, .bottom-left { text-align: left; }
             .top-right, .bottom-right { text-align: right; }
-            /* Align bottom row to bottom to frame the clock */
             .bottom-left, .bottom-right { align-self: end; padding-bottom: 2vmin; }
             .top-left, .top-right { align-self: start; padding-top: 2vmin; }
 
@@ -105,14 +88,14 @@ window.ActiveTheme = {
                 display: flex; 
                 justify-content: center; 
                 align-items: center; 
-                /* RESTORED BIG SIZE: 25vw on 16:9 is roughly 42vmin */
                 font-size: 42vmin; 
                 line-height: 0.8;
-                margin-top: -2vmin; /* Optical alignment */
+                margin-top: -2vmin;
+                text-shadow: none; 
             }
 
             #lcd-ampm { 
-                font-size: 8vmin; /* Increased from 5 to 8 */
+                font-size: 8vmin;
                 margin-left: 3vmin; 
                 display: flex;
                 flex-direction: column;
@@ -122,26 +105,31 @@ window.ActiveTheme = {
             }
 
             #lcd-seconds {
-                font-size: 8vmin; /* Increased size */
+                font-size: 8vmin;
             }
+
+            /* Dimmed elements */
+            #lcd-am, #lcd-pm { opacity: 0.3; }
+            #lcd-am.active, #lcd-pm.active { opacity: 1; font-weight: bold; }
         `);
 
         stage.innerHTML = this.template();
         this.cache(stage);
         
-        this.applyColor(savedSettings.tintColor || '#00d5ff');
+        // Apply Settings
+        this.applyColor(savedSettings.tintColor || '#66fcf1');
         this.applyZoom(savedSettings.zoom || 100);
     },
 
     update() { this.updateClock(); },
 
     onSettingsChange(key, val) {
-        if (key === 'tintColor') this.applyColor(val);
         if (key === 'zoom') this.applyZoom(val);
+        if (key === 'tintColor') this.applyColor(val);
     },
 
     destroy() {
-        document.getElementById('theme-font-style')?.remove();
+        document.getElementById('theme-font-link')?.remove();
         document.getElementById('theme-main-style')?.remove();
         this.els = {};
     },
@@ -149,8 +137,8 @@ window.ActiveTheme = {
     /* helpers */
     cache(stage) {
         this.els = {
+            container: stage.querySelector('.lcd-container'), // Need container for color
             scaler: stage.querySelector('#lcd-scaler'),
-            container: stage.querySelector('.lcd-container'),
             time: stage.querySelector('#lcd-time'),
             seconds: stage.querySelector('#lcd-seconds'),
             am: stage.querySelector('#lcd-am'),
@@ -190,23 +178,20 @@ window.ActiveTheme = {
     },
 
     applyColor(hex) {
-        const glow = hex + '80';
-        const dim = hex + '40';
+        // Just setting the variable is enough because we used var(--lcd-color) in CSS
         if (this.els.container) {
             this.els.container.style.setProperty('--lcd-color', hex);
-            this.els.container.style.setProperty('--lcd-glow', glow);
-            this.els.container.style.setProperty('--lcd-dim', dim);
         }
     },
 
-    injectFont(css) {
-        const style = document.createElement('style');
-        style.id = 'theme-font-style';
-        style.textContent = css;
-        document.head.appendChild(style);
+    injectLink(href) {
+        const link = document.createElement('link');
+        link.id = 'theme-font-link';
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
     },
 
-    // Helper to inject the main CSS
     injectStyles(css) {
         const style = document.createElement('style');
         style.id = 'theme-main-style';
@@ -219,18 +204,18 @@ window.ActiveTheme = {
             <div id="lcd-root">
                 <div id="lcd-aspect-box">
                     <div id="lcd-scaler">
-                        <div class="lcd-container segment">
-                            <div class="top-left lcd-glow">.</div>
-                            <div class="top-right lcd-glow" id="lcd-full-date"></div>
-                            <div class="clock-center lcd-glow">
+                        <div class="lcd-container industrial">
+                            <div class="top-left">.</div>
+                            <div class="top-right" id="lcd-full-date"></div>
+                            <div class="clock-center">
                                 <span id="lcd-time">9:00</span>
                                 <div id="lcd-ampm">
-                                    <div id="lcd-am" class="lcd-dim">AM</div>
-                                    <div id="lcd-pm" class="lcd-dim">PM</div>
+                                    <div id="lcd-am">AM</div>
+                                    <div id="lcd-pm">PM</div>
                                 </div>
                             </div>
-                            <div class="bottom-left lcd-glow" id="lcd-short-date"></div>
-                            <div class="bottom-right lcd-glow" id="lcd-seconds">00</div>
+                            <div class="bottom-left" id="lcd-short-date"></div>
+                            <div class="bottom-right" id="lcd-seconds">00</div>
                         </div>
                     </div>
                 </div>
