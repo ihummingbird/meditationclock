@@ -1,0 +1,4 @@
+Add a scrollbar to the settings bar
+Add a link to the stats page and back
+increase the duration categorization on the stats page
+add a scroller that shows all days of meditation in the stats page.
