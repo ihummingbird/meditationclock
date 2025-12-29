@@ -1,5 +1,7 @@
 Meditation Clock
 
+![A pic of the webpage](hiAgainNova.png)
+
 A distraction-free, environment for meditation.
 
 I built this because I wanted a way to meditate with my eyes open without the clutter of modern interfaces. Most clock apps are too bright, have ads, or require subscriptions.
