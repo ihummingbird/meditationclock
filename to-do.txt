@@ -2,3 +2,6 @@ Add a scrollbar to the settings bar
 Add a link to the stats page and back
 increase the duration categorization on the stats page
 add a scroller that shows all days of meditation in the stats page.
+The font sizing of the cyberpunk clock is wrong, change the clock font to be the same as other elements like it was before.
+Fix the circular clock. It's the only beautiful circular clock but doesn't work at all on phones.
+
