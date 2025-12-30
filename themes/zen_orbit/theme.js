@@ -53,6 +53,7 @@ window.ActiveTheme = {
     },
 
     init(stage, settings) {
+        // ... (existing HTML injection) ...
         stage.innerHTML = `
             <div class="zen-stage">
                 <div class="zen-gradient"></div>
@@ -76,25 +77,32 @@ window.ActiveTheme = {
             </div>
         `;
 
-        this.els.hours = stage.querySelector('.hours');
-        this.els.minutes = stage.querySelector('.minutes');
-        this.els.seconds = stage.querySelector('.seconds');
-        this.els.date = stage.querySelector('.date-line');
-        this.els.zone = stage.querySelector('.zone-pill');
-        this.els.shell = stage.querySelector('.zen-shell');
+        this.els = {
+            hours: stage.querySelector('.hours'),
+            minutes: stage.querySelector('.minutes'),
+            seconds: stage.querySelector('.seconds'),
+            date: stage.querySelector('.date-line'),
+            zone: stage.querySelector('.zone-pill'),
+            shell: stage.querySelector('.zen-shell'),
+            orbit1: stage.querySelector('.orbit.primary'),
+            orbit2: stage.querySelector('.orbit.secondary')
+        };
 
         this.currentSettings = {
             scale: settings.scale ?? this.settingsConfig.scale.default,
             glow: settings.glow ?? this.settingsConfig.glow.default,
             ringWeight: settings.ringWeight ?? this.settingsConfig.ringWeight.default,
+            // orbitSpeed property is kept for CSS storage but not used for rotation anymore
             orbitSpeed: settings.orbitSpeed ?? this.settingsConfig.orbitSpeed.default,
             palette: settings.palette ?? this.settingsConfig.palette.default,
             layout: settings.layout ?? this.settingsConfig.layout.default
         };
 
         this.applySettings();
+        this.animate(); // Start the loop
     },
 
+    // ... (applySettings and deriveSecondary remain the same) ...
     applySettings() {
         const root = document.documentElement;
         const s = this.currentSettings;
@@ -139,6 +147,27 @@ window.ActiveTheme = {
         this.els.zone.textContent = zone.toUpperCase();
     },
 
+    animate() {
+        // Stop if elements are gone (theme switched)
+        if (!this.els.orbit1) return;
+
+        const now = new Date();
+        const ms = now.getMilliseconds();
+        const s = now.getSeconds() + (ms / 1000);
+        const m = now.getMinutes() + (s / 60);
+
+        // Outer Ring: Seconds (Smooth)
+        const sDeg = s * 6;
+
+        // Inner Ring: Minutes (Smooth)
+        const mDeg = m * 6;
+
+        this.els.orbit1.style.transform = `rotate(${sDeg}deg)`;
+        this.els.orbit2.style.transform = `rotate(${mDeg}deg)`;
+
+        this.animationId = requestAnimationFrame(() => this.animate());
+    },
+
     onSettingsChange(key, val) {
         if (key === 'scale' || key === 'glow' || key === 'ringWeight' || key === 'orbitSpeed') {
             this.currentSettings[key] = Number(val);
@@ -149,6 +178,7 @@ window.ActiveTheme = {
     },
 
     destroy() {
+        if (this.animationId) cancelAnimationFrame(this.animationId);
         this.els = {};
     }
 };

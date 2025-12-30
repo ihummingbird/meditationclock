@@ -25,7 +25,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
     background-size: 200px 200px;
     opacity: 0.15;
     pointer-events: none;
@@ -34,22 +34,25 @@
 .zen-gradient {
     position: absolute;
     inset: -30%;
-    background: conic-gradient(
-        from 45deg,
-        rgba(5,201,255,0.35),
-        rgba(139,92,246,0.25),
-        rgba(4,34,66,0.5),
-        rgba(207,148,255,0.25),
-        rgba(5,201,255,0.35)
-    );
+    background: conic-gradient(from 45deg,
+            rgba(5, 201, 255, 0.35),
+            rgba(139, 92, 246, 0.25),
+            rgba(4, 34, 66, 0.5),
+            rgba(207, 148, 255, 0.25),
+            rgba(5, 201, 255, 0.35));
     animation: swirl 60s linear infinite;
     filter: blur(120px);
     opacity: 0.55;
 }
 
 @keyframes swirl {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .zen-shell {
@@ -69,12 +72,12 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), rgba(0,0,0,0.7));
-    border: 1px solid rgba(255,255,255,0.05);
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.7));
+    border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow:
-        0 20px 60px rgba(0,0,0,0.6),
-        0 0 0 1px rgba(255,255,255,0.04),
-        inset 0 0 40px rgba(0,0,0,0.5);
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 0 40px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
@@ -84,7 +87,7 @@
     position: absolute;
     inset: 4%;
     border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     opacity: 0.6;
 }
 
@@ -94,25 +97,24 @@
     border-radius: 50%;
     border: var(--zo-ring-weight) solid color-mix(in srgb, var(--zo-accent) 50%, transparent);
     filter: drop-shadow(0 0 30px color-mix(in srgb, var(--zo-accent) var(--zo-glow), transparent));
-    animation: orbit var(--zo-orbit-speed) linear infinite;
+    /* animation: orbit var(--zo-orbit-speed) linear infinite; REMOVED FOR JS SYNC */
+    will-change: transform;
     mix-blend-mode: screen;
 }
 
 .orbit.secondary {
     inset: 16%;
     border-color: color-mix(in srgb, var(--zo-secondary) 55%, transparent);
-    animation-duration: calc(var(--zo-orbit-speed) * 1.5);
+    /* animation-duration: calc(var(--zo-orbit-speed) * 1.5); REMOVED */
 }
 
-@keyframes orbit {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-}
+/* @keyframes orbit { ... } REMOVED */
 
 .orbit::after {
     content: "";
     position: absolute;
-    top: -12px;
+    /* FIX: Center dot on 4px border: -4px aligns centers */
+    top: -4px;
     right: calc(50% - 6px);
     width: 12px;
     height: 12px;
@@ -136,7 +138,8 @@
     align-items: center;
     justify-content: center;
     text-transform: uppercase;
-    gap: 18px;
+    gap: 12px;
+    /* Tighter gap */
     z-index: 2;
     text-align: center;
 }
@@ -145,7 +148,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 0;
+    /* Tighten Time Stack */
     letter-spacing: 0.2em;
 }
 
@@ -153,18 +157,19 @@
     font-size: clamp(48px, 14vmin, 120px);
     font-weight: 600;
     letter-spacing: 0.35em;
+    line-height: 1;
 }
 
 .time-stack .minutes {
     font-size: clamp(28px, 8vmin, 80px);
     opacity: 0.85;
     letter-spacing: 0.4em;
+    line-height: 1.2;
 }
 
+/* Removed the bullet point ::before on .minutes for better alignment */
 .time-stack .minutes::before {
-    content: "•";
-    margin-right: 0.4em;
-    color: var(--zo-accent);
+    content: none;
 }
 
 .seconds {
@@ -187,10 +192,10 @@
 }
 
 .footer-info .zone-pill {
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 6px 12px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     letter-spacing: 0.3em;
 }
 

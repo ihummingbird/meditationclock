@@ -19,8 +19,8 @@ window.ActiveTheme = {
     },
 
     init(stage, savedSettings = {}) {
-        this.destroy(); 
-        
+        this.destroy();
+
         // 1. Load Font
         this.injectLink('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
 
@@ -125,9 +125,9 @@ window.ActiveTheme = {
             .lcd-dim { opacity: 0.25; transition: opacity 0.2s ease; }
             #lcd-am.active, #lcd-pm.active { opacity: 1; text-shadow: 0 0 10px var(--accent-glow); }
 
-            /* --- RESTORED BIG SIZES --- */
+            /* --- RESTORED BIG SIZES (Original) --- */
             .top-left, .top-right, .bottom-left, .bottom-right { 
-                font-size: 5vmin; /* Matched to previous big themes */
+                font-size: 5vmin; 
                 text-transform: uppercase; 
                 white-space: nowrap;
                 align-self: center;
@@ -152,7 +152,7 @@ window.ActiveTheme = {
                 display: flex; 
                 justify-content: center; 
                 align-items: center; 
-                /* HUGE CLOCK SIZE */
+                /* ORIGINAL BIG SIZE */
                 font-size: 42vmin; 
                 line-height: 0.8;
                 margin-top: -2vmin;
@@ -170,6 +170,13 @@ window.ActiveTheme = {
 
             #lcd-seconds {
                 font-size: 8vmin;
+            }
+
+            /* --- MOBILE FIXES --- */
+            @media (orientation: portrait) {
+                .clock-center { font-size: 28vmin; margin-top: 0; }
+                .top-left, .top-right, .bottom-left, .bottom-right { font-size: 4vmin; }
+                #lcd-ampm, #lcd-seconds { font-size: 6vmin; }
             }
 
             /* Pulse Bar */
@@ -194,7 +201,7 @@ window.ActiveTheme = {
 
         const accent = savedSettings.accentColor || '#7cf9ff';
         const zoom = savedSettings.zoom || 100;
-        
+
         this.applyAccent(accent);
         this.applyZoom(zoom);
     },
@@ -216,15 +223,15 @@ window.ActiveTheme = {
         this.els.am.classList.toggle('active', !isPM);
         this.els.pm.classList.toggle('active', isPM);
 
-        const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-        const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-        const fullMonths = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+        const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const fullMonths = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
 
         this.els.shortDate.textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
         this.els.fullDate.textContent = `${fullMonths[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-        
+
         // Status text logic
-        if(this.els.status) {
+        if (this.els.status) {
             this.els.status.textContent = this.statusPhrases[now.getSeconds() % this.statusPhrases.length];
         }
     },
@@ -284,7 +291,7 @@ window.ActiveTheme = {
         const dim = color + '40';  // ~25% opacity hex
 
         const setVars = (el) => {
-            if(!el) return;
+            if (!el) return;
             el.style.setProperty('--accent', color);
             el.style.setProperty('--accent-glow', glow);
             el.style.setProperty('--accent-dim', dim);

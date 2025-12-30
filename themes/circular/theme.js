@@ -4,7 +4,7 @@ window.ActiveTheme = {
     animationId: null,
     width: 0,
     height: 0,
-    
+
     config: {
         baseColor: { h: 190, s: 100, l: 50 },
     },
@@ -27,24 +27,47 @@ window.ActiveTheme = {
     },
 
     init(stage, savedSettings = {}) {
-        this.destroy(); 
-        
+        this.destroy();
+
         // Inject the CSS (Included below)
         this.injectStyles(`
             :root {
                 --text-color: #ffffff;
                 --nav-height: 80px; 
                 --bottom-height: 80px;
+                --zen-size: 100vmin; /* Default fallback */
             }
             body { margin: 0; background: #000; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
             #zen-root { width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
             #zen-scaler { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; transform-origin: center center; transition: transform 0.1s linear; will-change: transform; }
             #zen-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
             .zen-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; padding-top: var(--nav-height); padding-bottom: var(--bottom-height); box-sizing: border-box; color: var(--text-color); text-align: center; }
-            .zen-time { font-size: 18vw; font-weight: 200; letter-spacing: -0.03em; line-height: 1; text-shadow: 0 0 30px rgba(0,0,0,0.5); margin-bottom: 10px; font-feature-settings: "tnum"; }
-            @media (min-aspect-ratio: 16/9) { .zen-time { font-size: 25vh; } }
-            .zen-date { font-size: 4vmin; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.7; margin-bottom: 5px; }
-            .zen-label { font-size: 2.5vmin; font-weight: 600; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+            
+            /* DYNAMIC SIZING BASED ON CLOCK DIAMETER */
+            .zen-time { 
+                font-size: calc(var(--zen-size) * 0.15); /* Reduced from 0.22 */
+                font-weight: 200; 
+                letter-spacing: -0.03em; 
+                line-height: 1; 
+                text-shadow: 0 0 30px rgba(0,0,0,0.5); 
+                margin-bottom: 10px; 
+                font-feature-settings: "tnum"; 
+            }
+            .zen-date { 
+                font-size: calc(var(--zen-size) * 0.04); /* Reduced from 0.05 */
+                font-weight: 400; 
+                letter-spacing: 0.2em; 
+                text-transform: uppercase; 
+                opacity: 0.7; 
+                margin-bottom: 5px; 
+            }
+            .zen-label { 
+                font-size: calc(var(--zen-size) * 0.025); /* Reduced from 0.03 */
+                font-weight: 600; 
+                letter-spacing: 0.1em; 
+                color: rgba(255,255,255,0.4); 
+                text-transform: uppercase; 
+            }
         `);
 
         stage.innerHTML = this.template();
@@ -64,19 +87,19 @@ window.ActiveTheme = {
         const now = new Date();
         const h = now.getHours();
         const m = now.getMinutes();
-        
+
         const hStr = h > 12 ? h - 12 : (h === 0 ? 12 : h);
         const mStr = String(m).padStart(2, '0');
-        
+
         if (this.els.time) this.els.time.innerText = `${hStr}:${mStr}`;
 
-        const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         if (this.els.date) {
             this.els.date.innerText = `${months[now.getMonth()]} ${now.getDate()}`;
         }
-        
+
         if (this.els.label) {
-             this.els.label.innerText = h >= 12 ? 'PM' : 'AM';
+            this.els.label.innerText = h >= 12 ? 'PM' : 'AM';
         }
     },
 
@@ -94,31 +117,29 @@ window.ActiveTheme = {
         const cx = this.width / 2;
         const cy = this.height / 2;
 
-        // --- FIX IS HERE ---
-        // We calculate a scale multiplier based on the smallest screen dimension.
-        // 800px is the reference size. If screen is smaller, thicknesses shrink.
+        // --- FIX: Use Min Dimension for Uniform Radius ---
         const minDim = Math.min(this.width, this.height);
-        const scale = minDim / 800; 
+        const scale = minDim / 800;
 
-        // Apply scale to the thickness arguments (The last number in drawRing)
-        this.drawRing(cx, cy, this.width * 0.35, s / 60, 2 * scale, 0.8);
-        this.drawRing(cx, cy, this.width * 0.28, m / 60, 6 * scale, 0.5);
-        this.drawRing(cx, cy, this.width * 0.20, h / 12, 12 * scale, 0.3);
+        // Apply scale to dimensions
+        this.drawRing(cx, cy, minDim * 0.35, s / 60, 2 * scale, 0.8);
+        this.drawRing(cx, cy, minDim * 0.28, m / 60, 6 * scale, 0.5);
+        this.drawRing(cx, cy, minDim * 0.20, h / 12, 12 * scale, 0.3);
 
         this.animationId = requestAnimationFrame(() => this.animate());
     },
 
     drawRing(cx, cy, radius, progress, thickness, opacity) {
-        // Max radius constraint
+        // Simple Max Radius Constraint (though minDim usually handles it)
         const maxR = Math.min(this.width, this.height) * 0.45;
-        if (radius > maxR) radius = maxR * (radius / (this.width * 0.35));
+        if (radius > maxR) radius = maxR; // Cap it strictly
 
         const startAngle = -Math.PI / 2;
         const endAngle = startAngle + (Math.PI * 2 * progress);
-        
+
         this.ctx.shadowBlur = 20;
         this.ctx.shadowColor = `hsla(${this.config.baseColor.h}, ${this.config.baseColor.s}%, 50%, 0.8)`;
-        
+
         // Track
         this.ctx.beginPath();
         this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
@@ -134,7 +155,7 @@ window.ActiveTheme = {
         this.ctx.lineCap = 'round';
         this.ctx.stroke();
 
-        // Dot (Ball) - The size here is derived from 'thickness', so it now scales properly
+        // Dot
         const px = cx + Math.cos(endAngle) * radius;
         const py = cy + Math.sin(endAngle) * radius;
         this.ctx.beginPath();
@@ -145,9 +166,19 @@ window.ActiveTheme = {
     },
 
     handleResize() {
-        if (!this.els.canvas) return;
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
+        if (!this.els.canvas || !this.els.scaler) return;
+
+        // --- FIX: Use Actual Element Size ---
+        const rect = this.els.scaler.getBoundingClientRect();
+        this.width = rect.width;
+        this.height = rect.height;
+
+        // Calculate Clock Diameter
+        const minDim = Math.min(this.width, this.height);
+
+        // Update CSS Variable for Font Sizing
+        this.els.scaler.style.setProperty('--zen-size', `${minDim}px`);
+
         const dpr = window.devicePixelRatio || 1;
         this.els.canvas.width = this.width * dpr;
         this.els.canvas.height = this.height * dpr;
@@ -156,14 +187,14 @@ window.ActiveTheme = {
 
     applyColor(hex) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        if(result) {
+        if (result) {
             let r = parseInt(result[1], 16) / 255;
             let g = parseInt(result[2], 16) / 255;
             let b = parseInt(result[3], 16) / 255;
             const max = Math.max(r, g, b), min = Math.min(r, g, b);
             let h, s, l = (max + min) / 2;
 
-            if (max === min) { h = s = 0; } 
+            if (max === min) { h = s = 0; }
             else {
                 const d = max - min;
                 s = l > 0.5 ? d / (2 - max - min) : d / (max + min);

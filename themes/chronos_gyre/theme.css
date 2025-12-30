@@ -1,0 +1,189 @@
+:root {
+    --cg-color: #ffd700;
+    /* Gold */
+    --cg-color-2: #0ff;
+    /* Cyan */
+    --cg-speed: 20s;
+    --cg-scale: 1;
+}
+
+body {
+    background: #000;
+}
+
+.gyre-stage {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cg-color);
+    font-family: 'JetBrains Mono', monospace;
+    perspective: 1200px;
+    /* The 3D Camera */
+}
+
+/* STARFIELD BACKGROUND (Static) */
+.starfield {
+    position: absolute;
+    inset: -50%;
+    background-image:
+        radial-gradient(1px 1px at 10% 20%, white, transparent),
+        radial-gradient(1px 1px at 80% 40%, white, transparent),
+        radial-gradient(2px 2px at 40% 60%, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(2px 2px at 70% 80%, white, transparent);
+    background-size: 400px 400px;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* THE MACHINE CONTAINER */
+.machine-core {
+    position: relative;
+    width: 60vmin;
+    height: 60vmin;
+    transform-style: preserve-3d;
+    transform: scale(var(--cg-scale));
+    display: flex;
+    /* Center inner content */
+    align-items: center;
+    justify-content: center;
+}
+
+/* RINGS */
+.ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid var(--cg-color);
+    box-shadow: 0 0 15px var(--cg-color), inset 0 0 15px var(--cg-color);
+    transform-style: preserve-3d;
+    opacity: 0.8;
+}
+
+/* Ring 1: Outer Vertical */
+.ring-1 {
+    width: 100%;
+    height: 100%;
+    border-color: var(--cg-color);
+    animation: spin1 var(--cg-speed) linear infinite;
+}
+
+/* Ring 2: Middle Tilted */
+.ring-2 {
+    width: 80%;
+    height: 80%;
+    border-color: var(--cg-color-2);
+    box-shadow: 0 0 15px var(--cg-color-2), inset 0 0 15px var(--cg-color-2);
+    animation: spin2 calc(var(--cg-speed) * 0.8) linear infinite;
+}
+
+/* Ring 3: Inner Horizontal */
+.ring-3 {
+    width: 60%;
+    height: 60%;
+    border: 4px double var(--cg-color);
+    animation: spin3 calc(var(--cg-speed) * 1.2) linear infinite;
+}
+
+/* Ring 4: Tiny Core */
+.ring-4 {
+    width: 40%;
+    height: 40%;
+    border: 1px dashed var(--cg-color-2);
+    animation: spin2 calc(var(--cg-speed) * 1.5) linear infinite reverse;
+}
+
+/* DECORATIVE TICKS ON RINGS (Pseudo elements) */
+.ring-1::before,
+.ring-1::after {
+    content: "";
+    position: absolute;
+    background: var(--cg-color);
+}
+
+.ring-1::before {
+    top: -4px;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    transform: translateX(-50%);
+}
+
+.ring-1::after {
+    bottom: -4px;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    transform: translateX(-50%);
+}
+
+/* ANIMATIONS (Multi-Axis Rotation) */
+@keyframes spin1 {
+    0% {
+        transform: rotateY(0deg) rotateX(45deg);
+    }
+
+    100% {
+        transform: rotateY(360deg) rotateX(45deg);
+    }
+}
+
+@keyframes spin2 {
+    0% {
+        transform: rotateX(0deg) rotateZ(60deg);
+    }
+
+    100% {
+        transform: rotateX(360deg) rotateZ(60deg);
+    }
+}
+
+@keyframes spin3 {
+    0% {
+        transform: rotateY(90deg) rotateX(0deg);
+    }
+
+    100% {
+        transform: rotateY(90deg) rotateX(360deg);
+    }
+}
+
+/* TITLE / TIME (Suspended in the middle, always facing camera) */
+.hud-interface {
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    transform: translateZ(50px);
+    /* Float slightly forward */
+    /* Ensure text doesn't rotate with rings by being outside the nested transforms or counter-rotated? 
+       Actually, separate div in DOM structure is easier. */
+}
+
+.time-display {
+    font-size: 10vmin;
+    color: #fff;
+    text-shadow: 0 0 20px var(--cg-color-2);
+    font-weight: 700;
+}
+
+.date-display {
+    font-size: 2vmin;
+    letter-spacing: 0.4em;
+    color: var(--cg-color);
+    margin-top: 10px;
+    text-shadow: 0 0 10px var(--cg-color);
+}
+
+@media (orientation: portrait) {
+    .machine-core {
+        width: 80vmin;
+        height: 80vmin;
+    }
+
+    .time-display {
+        font-size: 15vmin;
+    }
+}

@@ -84,7 +84,7 @@ window.ActiveTheme = {
                             <div class="subline">
                                 <span class="seconds-pill seconds">00</span>
                                 <span class="timezone">UTC</span>
-                                <span class="mantra">INHALE</span>
+                                <span class="mantra"> </span>
                             </div>
                         </div>
                     </div>
@@ -163,7 +163,7 @@ window.ActiveTheme = {
         const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'LOCAL';
         this.els.timezone.textContent = zone.toUpperCase();
 
-        const phases = ['INHALE', 'HOLD', 'EXHALE', 'HOLD'];
+        const phases = [' ', '.', ' ', '.'];
         const phaseIndex = Math.floor((now.getSeconds() % 16) / 4);
         this.els.mantra.textContent = phases[phaseIndex];
     },

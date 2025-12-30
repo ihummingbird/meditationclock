@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mindful Stats</title>
-    
+
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    
+
     <!-- CSS -->
     <link rel="stylesheet" href="stats.css">
 </head>
+
 <body>
 
     <div class="dashboard">
@@ -60,9 +62,12 @@
 
         <!-- NEW: DISTRIBUTION CHART -->
         <div class="distribution-section" style="margin-top: 20px; margin-bottom: 20px;">
-            <div class="dist-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0; font-size:12px; color:#666; text-transform:uppercase; letter-spacing:1px;">Distribution</h3>
-                <div class="toggle-group" style="background:#111; padding:4px; border-radius:8px; border:1px solid #333;">
+            <div class="dist-header"
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; font-size:12px; color:#666; text-transform:uppercase; letter-spacing:1px;">
+                    Distribution</h3>
+                <div class="toggle-group"
+                    style="background:#111; padding:4px; border-radius:8px; border:1px solid #333;">
                     <button id="btn-daily" class="toggle-btn active">Daily</button>
                     <button id="btn-hourly" class="toggle-btn">Hourly</button>
                 </div>
@@ -72,19 +77,32 @@
             </div>
         </div>
 
-        
 
-        <!-- NEW: RECORD DURATION DISTRIBUTION -->
+
+        <!-- RECORD DURATION DISTRIBUTION -->
         <div class="distribution-section" style="margin-top: 20px; margin-bottom: 20px;">
             <div class="dist-header" style="margin-bottom:15px;">
-                <h3 style="margin:0; font-size:12px; color:#666; text-transform:uppercase; letter-spacing:1px;">Session Length</h3>
+                <h3 style="margin:0; font-size:12px; color:#666; text-transform:uppercase; letter-spacing:1px;">Session
+                    Length</h3>
             </div>
             <div class="chart-container" style="height: 180px;">
                 <canvas id="durationChart"></canvas>
             </div>
         </div>
 
-        
+        <!-- NEW: DAILY SCROLLER -->
+        <div class="scroller-section">
+            <h3>Daily Overview</h3>
+            <div id="day-scroller" class="day-scroller">
+                <!-- JS will populate -->
+            </div>
+        </div>
+
+        <!-- NEW: ACTIVITY HEATMAP -->
+        <div class="heatmap-section" style="margin-bottom: 30px;">
+            <h3>Yearly Activity</h3>
+            <div id="activity-heatmap" class="heatmap-grid"></div>
+        </div>
 
         <!-- HISTORY -->
         <div class="history-section">
@@ -99,4 +117,5 @@
     <!-- LOGIC -->
     <script src="stats.js"></script>
 </body>
+
 </html>

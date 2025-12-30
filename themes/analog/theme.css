@@ -31,8 +31,10 @@
     background: #444;
     left: 50%;
     top: 0;
-    transform-origin: 50% 22.5vh; /* Half of clock-face height */
+    transform-origin: 50% 22.5vh;
+    /* Half of clock-face height */
 }
+
 .tick.major {
     background: #fff;
     width: 4px;
@@ -81,7 +83,8 @@
 .hand-second {
     width: 2px;
     height: 40%;
-    background: var(--theme-color, #ff453a); /* Dynamic Color */
+    background: var(--theme-color, #ff453a);
+    /* Dynamic Color */
     margin-left: -1px;
     z-index: 11;
 }
@@ -148,6 +151,28 @@
     font-weight: 700;
 }
 
-.cal-date.empty {
-    pointer-events: none;
+
+/* --- MOBILE PORTRAIT LAYOUT --- */
+@media (orientation: portrait) {
+    .analog-container {
+        flex-direction: column;
+        gap: 40px;
+    }
+
+    /* Resize Clock for Mobile Portrait to prevent overflow */
+    .clock-face {
+        width: 35vh;
+        height: 35vh;
+    }
+
+    /* Update Tick Origin for new height (35vh / 2 = 17.5vh) */
+    .tick {
+        transform-origin: 50% 17.5vh;
+    }
+
+    /* Resize Calendar to match */
+    .calendar-widget {
+        width: 35vh;
+        height: auto;
+    }
 }

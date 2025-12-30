@@ -2,7 +2,7 @@ const Engine = {
     // *** CONFIGURATION ***
 
     // Oi! What are you looking at here? Are you looking for secrets? I know you can misuse this. Please don't. Kindly :*
-    API_URL: 'https://script.google.com/macros/s/AKfycbwHCfHaBJFXXyvASFf5x5Iy0OCiQLD38hsW4_gOGiWdiJPIURBcFovTVvDN7qShd6R5AA/exec', 
+    API_URL: 'https://script.google.com/macros/s/AKfycbwHCfHaBJFXXyvASFf5x5Iy0OCiQLD38hsW4_gOGiWdiJPIURBcFovTVvDN7qShd6R5AA/exec',
 
     // 1. REGISTRY
     themes: [
@@ -13,20 +13,25 @@ const Engine = {
         { id: 'lcd', name: 'Retro LCD' },
         { id: 'industrial_digital_clock', name: 'Industrial Digital Clock' },
         { id: 'cyberpunk_digital', name: '☆ Cyberpunk Digital' },
+        { id: 'ethereal_tides', name: '☆ Ethereal Tides' },
+        { id: 'astral_tides', name: '☆ Astral Tides' },
         { id: 'mail', name: '☆ Nostalgia' },
         { id: 'circular', name: '☆ Circular' },
         { id: 'auroras_glass', name: '☆ Auroras Glass' },
         { id: 'zen_orbit', name: '☆ Zen Orbit' },
         { id: 'solstice_prism', name: 'Solstice Prism' },
-        { id: 'horizon_loom', name: 'Horizon Loom' }
+        { id: 'horizon_loom', name: 'Horizon Loom' },
+        { id: 'chronos_gyre', name: 'Chronos Gyre' },
+        { id: 'celestial_chronos', name: '☆ Celestial Chronos' }
 
-        
+
+
     ],
     state: {
         activeThemeId: 'simple',
         themeSettings: {}
     },
-    
+
     // Session State
     session: {
         active: false,
@@ -38,12 +43,12 @@ const Engine = {
     dom: {
         stage: document.getElementById('stage'),
         cssLink: document.getElementById('theme-stylesheet'),
-        
+
         libraryDrawer: document.getElementById('library-drawer'),
         settingsDrawer: document.getElementById('settings-panel'),
         themeGrid: document.getElementById('theme-grid'),
         settingsContent: document.getElementById('settings-content'),
-        
+
         btnFullscreen: document.getElementById('btn-fullscreen'),
         btnExitFs: document.getElementById('btn-exit-fs'),
         sessionHandle: document.getElementById('session-handle'),
@@ -60,9 +65,9 @@ const Engine = {
         syncMsg: document.getElementById('sync-msg')
     },
 
-    init: function() {
+    init: function () {
         this.loadState();
-        
+
         // Listeners
         document.getElementById('btn-library').addEventListener('click', () => this.toggleDrawer('library'));
         document.getElementById('btn-close-library').addEventListener('click', () => this.closeDrawers());
@@ -70,7 +75,7 @@ const Engine = {
         document.getElementById('btn-close-settings').addEventListener('click', () => this.closeDrawers());
         this.dom.btnFullscreen.addEventListener('click', () => this.enterFullscreen());
         this.dom.btnExitFs.addEventListener('click', () => this.exitFullscreen());
-        
+
         ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(
             eventType => document.addEventListener(eventType, () => this.handleFullscreenChange(), false)
         );
@@ -89,35 +94,93 @@ const Engine = {
 
         // Load cached username
         const savedUser = localStorage.getItem('meditation_user');
-        if(savedUser) this.dom.userInput.value = savedUser;
+        if (savedUser) this.dom.userInput.value = savedUser;
 
         this.buildLibraryUI();
         this.loadTheme(this.state.activeThemeId);
         this.startClock();
+
+        // Scroll fade indicator for theme library
+        this.initScrollIndicators();
     },
 
-    handleSessionClick: function() {
+    initScrollIndicators: function () {
+        const grid = this.dom.themeGrid;
+        const drawer = this.dom.libraryDrawer;
+
+        if (!grid || !drawer) return;
+
+        // Dynamic creation of scroll indicator if missing
+        if (!this.dom.scrollIndicator) {
+            let indicator = document.getElementById('library-scroll-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'library-scroll-indicator';
+                indicator.className = 'scroll-indicator';
+                // HTML Entity for a nice thin chevron down (⌄)
+                indicator.innerHTML = '&#8964;';
+                drawer.appendChild(indicator);
+            }
+            this.dom.scrollIndicator = indicator;
+        }
+
+        const updateScrollState = () => {
+            const scrollTop = grid.scrollTop;
+            const scrollHeight = grid.scrollHeight;
+            const clientHeight = grid.clientHeight;
+            const threshold = 10;
+
+            // Remove all scroll state classes
+            drawer.classList.remove('scroll-top', 'scroll-middle', 'scroll-bottom');
+
+            if (scrollTop <= threshold) {
+                // At top
+                drawer.classList.add('scroll-top');
+            } else if (scrollTop + clientHeight >= scrollHeight - threshold) {
+                // At bottom
+                drawer.classList.add('scroll-bottom');
+                if (this.dom.scrollIndicator) this.dom.scrollIndicator.style.opacity = '0';
+            } else {
+                // In middle
+                drawer.classList.add('scroll-middle');
+                if (this.dom.scrollIndicator) this.dom.scrollIndicator.style.opacity = '1';
+            }
+
+            // Show indicator if at top and scrollable
+            if (scrollTop <= threshold && scrollHeight > clientHeight) {
+                if (this.dom.scrollIndicator) this.dom.scrollIndicator.style.opacity = '1';
+            }
+        };
+
+        grid.addEventListener('scroll', updateScrollState);
+        window.addEventListener('resize', updateScrollState);
+
+        // Initial state check (with slight delay to ensure content is rendered)
+        setTimeout(updateScrollState, 100);
+    },
+
+    handleSessionClick: function () {
         const s = this.session;
 
         // 1. START SESSION
         if (!s.active && !s.finished) {
             s.active = true;
             s.startTime = Date.now();
-            
+
             // UI
             this.dom.sessionBtn.innerText = "Stop Session";
             this.dom.sessionBtn.classList.add('stop-mode');
             this.dom.sessionHandle.classList.add('meditating');
             this.dom.sessionText.innerText = "In Progress";
             this.dom.sessionTimer.classList.remove('finished');
-            
+
             // ENSURE WE ARE IN BIG MODE (Remove class)
-            this.dom.controlsRow.classList.remove('sync-layout'); 
+            this.dom.controlsRow.classList.remove('sync-layout');
             // Also ensure specific display style is cleared so CSS class handles it
-            this.dom.syncGroup.style.display = ''; 
+            this.dom.syncGroup.style.display = '';
 
             this.dom.syncMsg.innerText = "";
-            
+
             setTimeout(() => { this.dom.sessionPanel.classList.remove('active'); }, 500);
             return;
         }
@@ -127,9 +190,9 @@ const Engine = {
             s.active = false;
             s.finished = true;
             s.elapsed = Date.now() - s.startTime;
-            
+
             // UI
-            this.dom.sessionBtn.innerText = "New Session"; 
+            this.dom.sessionBtn.innerText = "New Session";
             this.dom.sessionBtn.classList.remove('stop-mode');
             this.dom.sessionHandle.classList.remove('meditating');
             this.dom.sessionText.innerText = "Session Complete";
@@ -137,8 +200,8 @@ const Engine = {
             this.dom.sessionTimer.innerText = this.formatTime(s.elapsed);
 
             // ACTIVATE SHAPE SHIFT (Morph to Small Mode)
-            this.dom.controlsRow.classList.add('sync-layout'); 
-            
+            this.dom.controlsRow.classList.add('sync-layout');
+
             return;
         }
 
@@ -147,24 +210,24 @@ const Engine = {
             s.finished = false;
             s.elapsed = 0;
             s.startTime = null;
-            
+
             this.dom.sessionBtn.innerText = "Begin Meditation";
             this.dom.sessionTimer.innerText = "00:00:00";
             this.dom.sessionTimer.classList.remove('finished');
             this.dom.sessionText.innerText = "Start Session";
-            
+
             // RETURN TO BIG MODE (Morph back to Big)
             this.dom.controlsRow.classList.remove('sync-layout');
-            
+
             this.dom.syncMsg.innerText = "";
             return;
         }
     },
 
-    uploadSession: function() {
+    uploadSession: function () {
         const user = this.dom.userInput.value.trim() || 'ANONYMOUS';
         const durationSecs = Math.floor(this.session.elapsed / 1000);
-        
+
         localStorage.setItem('meditation_user', user);
 
         this.dom.syncBtn.innerText = "...";
@@ -178,26 +241,26 @@ const Engine = {
                 duration: durationSecs
             })
         })
-        .then(() => {
-            this.dom.syncBtn.innerText = "✓";
-            this.dom.syncMsg.innerText = `Saved ${this.formatTime(this.session.elapsed)}`;
-            this.dom.syncMsg.style.color = '#4caf50';
-            setTimeout(() => {
-                this.dom.syncBtn.innerText = "SYNC ☁️";
+            .then(() => {
+                this.dom.syncBtn.innerText = "✓";
+                this.dom.syncMsg.innerText = `Saved ${this.formatTime(this.session.elapsed)}`;
+                this.dom.syncMsg.style.color = '#4caf50';
+                setTimeout(() => {
+                    this.dom.syncBtn.innerText = "SYNC ☁️";
+                    this.dom.syncBtn.disabled = false;
+                }, 3000);
+            })
+            .catch(err => {
+                console.error(err);
+                this.dom.syncBtn.innerText = "Err";
                 this.dom.syncBtn.disabled = false;
-            }, 3000);
-        })
-        .catch(err => {
-            console.error(err);
-            this.dom.syncBtn.innerText = "Err";
-            this.dom.syncBtn.disabled = false;
-            this.dom.syncMsg.innerText = "Sync Failed";
-            this.dom.syncMsg.style.color = 'red';
-        });
+                this.dom.syncMsg.innerText = "Sync Failed";
+                this.dom.syncMsg.style.color = 'red';
+            });
     },
 
 
-    enterFullscreen: function() {
+    enterFullscreen: function () {
         const elem = document.documentElement;
         const req = elem.requestFullscreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullscreen;
         document.body.classList.add('fullscreen-mode');
@@ -205,17 +268,17 @@ const Engine = {
         this.dom.sessionPanel.classList.remove('active');
         if (req) req.call(elem).catch(err => console.log("Fullscreen blocked:", err));
     },
-    exitFullscreen: function() {
+    exitFullscreen: function () {
         const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
         if (exit) exit.call(document);
         document.body.classList.remove('fullscreen-mode');
     },
-    handleFullscreenChange: function() {
+    handleFullscreenChange: function () {
         const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
         if (!isFullscreen) document.body.classList.remove('fullscreen-mode');
         else document.body.classList.add('fullscreen-mode');
     },
-    formatTime: function(ms) {
+    formatTime: function (ms) {
         const totalSecs = Math.floor(ms / 1000);
         const h = Math.floor(totalSecs / 3600);
         const m = Math.floor((totalSecs % 3600) / 60);
@@ -223,7 +286,7 @@ const Engine = {
         const pad = (n) => String(n).padStart(2, '0');
         return `${pad(h)}:${pad(m)}:${pad(s)}`;
     },
-    toggleDrawer: function(type) {
+    toggleDrawer: function (type) {
         if (type === 'library') {
             this.dom.libraryDrawer.classList.add('active');
             this.dom.settingsDrawer.classList.remove('active');
@@ -233,13 +296,13 @@ const Engine = {
         }
         this.dom.sessionPanel.classList.remove('active');
     },
-    closeDrawers: function() {
+    closeDrawers: function () {
         this.dom.libraryDrawer.classList.remove('active');
         this.dom.settingsDrawer.classList.remove('active');
     },
-    buildLibraryUI: function() {
+    buildLibraryUI: function () {
         const container = this.dom.themeGrid;
-        container.innerHTML = ''; 
+        container.innerHTML = '';
         this.themes.forEach(theme => {
             const tile = document.createElement('div');
             tile.className = 'theme-tile';
@@ -253,12 +316,12 @@ const Engine = {
             tile.appendChild(dot);
             tile.addEventListener('click', () => {
                 this.loadTheme(theme.id);
-                this.buildLibraryUI(); 
+                this.buildLibraryUI();
             });
             container.appendChild(tile);
         });
     },
-    loadTheme: function(themeId) {
+    loadTheme: function (themeId) {
         if (this.currentThemeObj && this.currentThemeObj.destroy) this.currentThemeObj.destroy();
         this.state.activeThemeId = themeId;
         this.saveState();
@@ -279,7 +342,7 @@ const Engine = {
         };
         document.body.appendChild(script);
     },
-    buildSettingsUI: function(themeId) {
+    buildSettingsUI: function (themeId) {
         const container = this.dom.settingsContent;
         container.innerHTML = '';
         if (!this.currentThemeObj || !this.currentThemeObj.settingsConfig) {
@@ -333,7 +396,7 @@ const Engine = {
                     if (color === currentVal) swatch.classList.add('active');
                     swatch.onclick = () => {
                         this.updateSetting(themeId, key, color);
-                        this.buildSettingsUI(themeId); 
+                        this.buildSettingsUI(themeId);
                     };
                     grid.appendChild(swatch);
                 });
@@ -344,7 +407,7 @@ const Engine = {
                 label.innerText = setting.label;
                 wrapper.appendChild(label);
                 const select = document.createElement('select');
-                select.className = 'setting-select'; 
+                select.className = 'setting-select';
                 setting.options.forEach(opt => {
                     const option = document.createElement('option');
                     option.value = opt.value;
@@ -362,21 +425,21 @@ const Engine = {
             container.appendChild(wrapper);
         }
     },
-    updateSetting: function(themeId, key, value) {
+    updateSetting: function (themeId, key, value) {
         if (!this.state.themeSettings[themeId]) this.state.themeSettings[themeId] = {};
         this.state.themeSettings[themeId][key] = value;
         this.saveState();
         if (this.currentThemeObj.onSettingsChange) this.currentThemeObj.onSettingsChange(key, value);
     },
-    saveState: function() {
+    saveState: function () {
         localStorage.setItem('meditation_os_state', JSON.stringify(this.state));
     },
-    loadState: function() {
+    loadState: function () {
         const saved = localStorage.getItem('meditation_os_state');
         if (saved) this.state = { ...this.state, ...JSON.parse(saved) };
     },
-    startClock: function() { setInterval(() => this.tick(), 1000); },
-    tick: function() {
+    startClock: function () { setInterval(() => this.tick(), 1000); },
+    tick: function () {
         if (this.currentThemeObj) {
             const now = new Date();
             this.currentThemeObj.update({

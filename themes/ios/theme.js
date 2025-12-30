@@ -1,6 +1,6 @@
 window.ActiveTheme = {
     els: {},
-    
+
     // CONFIGURATION
     settingsConfig: {
         // 1. Color Palette (Visual Circles)
@@ -34,7 +34,7 @@ window.ActiveTheme = {
         }
     },
 
-    init: function(stage, savedSettings) {
+    init: function (stage, savedSettings) {
         // Layout
         stage.innerHTML = `
             <div class="ios-container font-sans">
@@ -59,20 +59,20 @@ window.ActiveTheme = {
         this.els.dots = document.getElementById('ios-dots');
         this.els.day = document.getElementById('ios-day');
         this.els.dateNum = document.getElementById('ios-date-num');
-        
+
         // Initial Apply
         const color = savedSettings.tintColor || '#9ce89d';
         const fontStyle = savedSettings.fontStyle || 1;
         const weight = savedSettings.weight || 700;
-        
+
         this.applyVisuals(color, fontStyle, weight);
         this.updateDate();
     },
 
-    update: function(t) {
+    update: function (t) {
         this.els.h.innerText = t.h;
         this.els.m.innerText = t.m;
-        
+
         // Blink dots every second
         if (t.s % 2 === 0) {
             this.els.dots.style.opacity = 1;
@@ -83,14 +83,14 @@ window.ActiveTheme = {
         if (t.s === "00") this.updateDate();
     },
 
-    updateDate: function() {
+    updateDate: function () {
         const now = new Date();
         const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
         this.els.day.innerText = days[now.getDay()];
         this.els.dateNum.innerText = now.getDate();
     },
 
-    onSettingsChange: function(key, val) {
+    onSettingsChange: function (key, val) {
         if (key === 'tintColor') {
             this.els.container.style.color = val;
         }
@@ -102,17 +102,17 @@ window.ActiveTheme = {
         }
     },
 
-    applyVisuals: function(color, fontStyle, weight) {
+    applyVisuals: function (color, fontStyle, weight) {
         this.els.container.style.color = color;
         this.els.container.style.fontWeight = weight;
         this.setFontClass(parseInt(fontStyle));
     },
 
-    setFontClass: function(val) {
+    setFontClass: function (val) {
         // Clear all font classes
         const classes = ['font-sans', 'font-rounded', 'font-serif', 'font-mono', 'font-slab'];
         this.els.container.classList.remove(...classes);
-        
+
         // Apply new one based on index 1-5
         // 1: System Sans (San Francisco)
         // 2: System Rounded (SF Rounded)
@@ -123,7 +123,7 @@ window.ActiveTheme = {
         this.els.container.classList.add(map[val] || 'font-sans');
     },
 
-    destroy: function() {
+    destroy: function () {
         this.els = {};
     }
 };

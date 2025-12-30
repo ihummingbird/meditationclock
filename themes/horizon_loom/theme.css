@@ -1,278 +1,168 @@
 :root {
-    --hl-scale: 1;
-    --hl-accent: #7cd7ff;
-    --hl-accent2: #ff9ed1;
-    --hl-accent3: #ffd579;
-    --hl-grain: 0.18;
-    --hl-band: 0.6;
-    --hl-scan-speed: 22s;
+    --hb-scale: 1;
+    --hb-accent: #7cd7ff;
+    --hb-accent-2: #d77cff;
 }
 
-.horizon-stage {
+body {
+    margin: 0;
+    background: #000;
+}
+
+.bloom-stage {
     position: relative;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at 20% 20%, #060b16, #020205 70%);
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #f7fbff;
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    background: #050508;
+    /* Deep Void */
+    color: white;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.sky-glow,
-.aurora-band,
-.scanline,
-.grain-layer {
-    position: absolute;
-    inset: -20%;
-    pointer-events: none;
-}
-
-.sky-glow {
-    background: radial-gradient(circle at 30% 25%, rgba(124,215,255,0.5), transparent 60%);
-    filter: blur(80px);
-    opacity: 0.35;
-}
-
-.aurora-band {
-    background: conic-gradient(
-        from 30deg,
-        rgba(124,215,255,0.45),
-        rgba(255,158,209,0.35),
-        rgba(20,38,74,0.8),
-        rgba(255,213,121,0.35),
-        rgba(124,215,255,0.45)
-    );
-    filter: blur(180px);
-    opacity: 0.5;
-    animation: rotateBand 70s linear infinite;
-}
-
-@keyframes rotateBand {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-}
-
-.scanline {
-    background: linear-gradient(
-        180deg,
-        transparent 0%,
-        rgba(255,255,255,0.08) 50%,
-        transparent 100%
-    );
-    opacity: 0.18;
-    animation: scan var(--hl-scan-speed) linear infinite;
-}
-
-@keyframes scan {
-    from { transform: translateY(-30%); }
-    to   { transform: translateY(30%); }
-}
-
-.grain-layer {
-    background-image:
-        radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px);
-    background-size: 4px 4px;
-    opacity: var(--hl-grain);
-    mix-blend-mode: screen;
-}
-
-.safe-box {
-    position: relative;
-    aspect-ratio: 16 / 9;
-    width: min(94vw, 1200px);
-    max-height: 82vh;
-    transform: scale(var(--hl-scale));
-    transition: transform 0.35s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.horizon-panel {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 32px;
-    padding: clamp(28px, 4vw, 70px);
-    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(0,0,0,0.75));
-    border: 1px solid rgba(255,255,255,0.08);
-    box-shadow:
-        0 0 0 1px rgba(255,255,255,0.04),
-        0 40px 90px rgba(0,0,0,0.55),
-        inset 0 0 50px rgba(0,0,0,0.4);
-    overflow: hidden;
-}
-
-.panel-overlay {
-    position: absolute;
-    inset: 12px;
-    border-radius: 24px;
-    border: 1px solid rgba(255,255,255,0.05);
-    opacity: 0.45;
-    mix-blend-mode: screen;
-    pointer-events: none;
-}
-
-.light-band {
+/* Background Ambient Glow */
+.bloom-bg {
     position: absolute;
     inset: 0;
-    border-radius: 32px;
-    background: linear-gradient(150deg,
-        rgba(255,255,255,0.15),
-        rgba(255,255,255,0.02) 30%,
-        transparent 60%,
-        rgba(255,255,255,0.15));
-    opacity: calc(0.15 + var(--hl-band) * 0.6);
-    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(20, 20, 30, 1), #000 90%);
+    z-index: 0;
 }
 
-.loom-grid {
-    position: relative;
-    z-index: 2;
+/* THE BLOOM: The Heart of the Theme */
+.bloom-core {
+    position: absolute;
+    width: 60vmin;
+    height: 60vmin;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+            var(--hb-accent),
+            var(--hb-accent-2),
+            var(--hb-accent));
+    filter: blur(100px);
+    /* Massive blur for gaseous look */
+    opacity: 0.6;
+    animation: breathe 12s ease-in-out infinite, rotate 30s linear infinite;
+    transform-origin: center;
+    z-index: 1;
+}
+
+@keyframes breathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.3);
+        opacity: 0.7;
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg) scale(1);
+    }
+
+    /* Note: scale will be overridden by breathe if not careful. Compose them? */
+    /* CSS animations override each other on 'transform'. Better to nest. */
+}
+
+/* Re-doing animation: Wrap core in a rotator div, pulse the inner div. */
+
+/* FIX: Nesting for separation of concerns */
+.bloom-core {
+    animation: none;
+    /* Reset */
     width: 100%;
     height: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(20px, 4vw, 60px);
-    align-items: center;
+    /* Will fill container */
+    background: radial-gradient(circle, var(--hb-accent) 0%, transparent 70%);
 }
 
-.horizon-panel[data-layout="stack"] .loom-grid {
-    grid-template-columns: 1fr;
-    justify-items: center;
+/* Let's restart the Bloom Core visual strategy */
+
+/* VISUAL STRATEGY 2.0 */
+.bloom-core {
+    position: absolute;
+    width: 80vmin;
+    height: 80vmin;
+    background: radial-gradient(closest-side, var(--hb-accent), transparent);
+    filter: blur(80px);
+    opacity: 0.5;
+    animation: pulse 8s ease-in-out infinite alternate;
+    z-index: 1;
 }
 
-.time-block,
-.info-block {
-    width: 100%;
+.bloom-core::after {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background: radial-gradient(closest-side, var(--hb-accent-2), transparent);
+    filter: blur(100px);
+    mix-blend-mode: screen;
+    animation: pulse 12s ease-in-out infinite alternate-reverse;
 }
 
-.time-block {
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.4;
+    }
+
+    100% {
+        transform: scale(1.1);
+        opacity: 0.6;
+    }
+}
+
+/* CONTENT LAYER */
+.bloom-content {
+    position: relative;
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-}
-
-.time-main {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: clamp(12px, 3vw, 40px);
-    text-transform: uppercase;
-}
-
-.horizon-panel[data-layout="split"] .time-main {
-    justify-content: flex-start;
-}
-
-.time-main span {
-    font-weight: 600;
-    text-shadow: 0 0 40px color-mix(in srgb, var(--hl-accent) 70%, transparent);
-    letter-spacing: -0.04em;
-}
-
-.time-main .hh,
-.time-main .mm {
-    font-size: clamp(56px, 15vmin, 190px);
-}
-
-.time-main .colon {
-    font-size: clamp(32px, 9vmin, 110px);
-    color: color-mix(in srgb, var(--hl-accent2) 80%, white 15%);
-    transition: opacity 0.35s ease;
-}
-
-.seconds-pill {
-    display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 22px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.1);
-    letter-spacing: 0.25em;
-    font-size: clamp(14px, 2.6vmin, 22px);
-    text-transform: uppercase;
-}
-
-.horizon-panel[data-accent="orbit"] .seconds-pill {
-    border-style: dashed;
-    background: rgba(255,255,255,0.05);
-}
-
-.info-block {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(16px, 2.5vw, 30px);
-    text-transform: uppercase;
-    letter-spacing: 0.35em;
-    font-size: clamp(12px, 2.2vmin, 18px);
-}
-
-.date-line {
-    color: rgba(255,255,255,0.8);
-}
-
-.mantra {
-    color: color-mix(in srgb, var(--hl-accent3) 70%, white 20%);
-}
-
-.progress-wrap {
-    display: flex;
-    flex-direction: column;
+    text-align: center;
+    transform: scale(var(--hb-scale));
     gap: 10px;
 }
 
-.progress-label {
-    font-size: clamp(10px, 1.6vmin, 14px);
+.time-display {
+    font-size: 20vmin;
+    /* Massive responsive text */
+    font-weight: 200;
+    /* Light/Thin */
+    letter-spacing: -0.05em;
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(to bottom, #fff, rgba(255, 255, 255, 0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px var(--hb-accent));
+}
+
+.date-display {
+    font-size: 4vmin;
+    text-transform: uppercase;
     letter-spacing: 0.4em;
-    opacity: 0.6;
+    opacity: 0.8;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 400;
 }
 
-.progress-bar {
-    width: 100%;
-    height: 12px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.12);
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-bar .fill {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(90deg, var(--hl-accent), var(--hl-accent2));
-    width: 0%;
-    transition: width 0.5s ease;
-    box-shadow: 0 0 25px color-mix(in srgb, var(--hl-accent) 70%, transparent);
-}
-
-.ticker {
-    display: flex;
-    justify-content: space-between;
-    font-size: clamp(11px, 2vmin, 15px);
-    letter-spacing: 0.25em;
-    color: rgba(255,255,255,0.7);
-}
-
-@media (max-aspect-ratio: 9 / 16) {
-    .safe-box {
-        width: 95vw;
-        max-height: 72vh;
-        transform: scale(calc(var(--hl-scale) * 0.94));
+@media (orientation: portrait) {
+    .time-display {
+        font-size: 25vmin;
+        /* Even bigger on portrait width */
     }
-}
 
-@media (max-width: 520px) {
-    .seconds-pill {
-        align-self: flex-start;
-    }
-    .ticker {
-        flex-direction: column;
-        gap: 6px;
+    .date-display {
+        font-size: 5vmin;
     }
 }

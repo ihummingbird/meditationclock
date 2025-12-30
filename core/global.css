@@ -5,11 +5,15 @@
     --border-active: #ffffff;
     --text-main: #ffffff;
     --text-dim: #666666;
-    --success: #50fa7b; /* The Matrix Green */
+    --success: #50fa7b;
+    /* The Matrix Green */
 }
 
 /* RESET */
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
 
 body {
     margin: 0;
@@ -37,7 +41,8 @@ body {
     z-index: 1500;
     background: rgba(5, 5, 5, 0.8);
     backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px); /* iPhone Glass support */
+    -webkit-backdrop-filter: blur(10px);
+    /* iPhone Glass support */
     border-bottom: 1px solid var(--border-dim);
     transition: transform 0.5s ease, opacity 0.5s ease;
 }
@@ -53,7 +58,15 @@ body {
     transform: translateX(-50%);
 }
 
-.nav-right { display: flex; gap: 10px; }
+.nav-left {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-right {
+    display: flex;
+    gap: 10px;
+}
 
 .nav-btn {
     background: transparent;
@@ -67,10 +80,44 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    text-decoration: none;
 }
+
 .nav-btn:hover {
     border-color: var(--border-active);
     color: var(--text-main);
+}
+
+@media (max-width: 600px) {
+    .nav-text {
+        display: none;
+    }
+
+    .nav-brand {
+        display: none;
+        /* Optional: hide brand if it still clashes, or we can keep it if icons are small enough */
+    }
+
+    /* Let's try keeping brand but just hiding text for now. 
+       Actually user said it "completely ruins" it. 
+       Hiding brand text creates a very clean "App" look with just icons. 
+       Or we can keep brand and just hide nav-text. 
+       Let's try hiding nav-text first. If I hide brand, I might remove context.
+       However, usually on mobile apps headers are minimal. 
+       But the brand is "Meditation Clock". 
+       Let's only hide nav-text for now. */
+}
+
+@media (max-width: 600px) {
+    /* Re-enforcing removal of brand if needed, but let's stick to nav-text first */
+    /* Actually, if nav-text is gone, we have: Icon Icon [Brand] Icon Icon
+        Icon width ~30px + gap 10px ~ 40px each. 
+        Left: 80px. Right: 80px. 
+        Total occupied sides: 160px.
+        Screen: 320px (iPhone SE). 
+        Center space remaining: 160px. 
+        "MEDITATION CLOCK" at 12px font might fit.
+        Let's just hide the nav text and see. */
 }
 
 /* --- GHOST EXIT BUTTON --- */
@@ -109,7 +156,7 @@ body.fullscreen-mode #btn-exit-fs {
 
 body.fullscreen-mode #btn-exit-fs:hover {
     opacity: 1;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-color: white;
 }
 
@@ -118,17 +165,22 @@ body.fullscreen-mode #btn-exit-fs:hover {
     position: fixed;
     top: 0;
     bottom: 0;
-    width: 320px;
+    width: 360px;
+    /* Increased for better breathing room */
     background: var(--drawer-bg);
     z-index: 2000;
     padding: 30px;
-    box-shadow: 0 0 50px rgba(0,0,0,0.9);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--border-dim);
 }
-.right-drawer { border-left: 1px solid var(--border-dim); border-right: none; }
+
+.right-drawer {
+    border-left: 1px solid var(--border-dim);
+    border-right: none;
+}
 
 .drawer-header {
     display: flex;
@@ -143,47 +195,213 @@ body.fullscreen-mode #btn-exit-fs:hover {
     border-bottom: 1px solid var(--border-dim);
 }
 
-.close-btn { background: none; border: none; color: #666; font-size: 20px; cursor: pointer; }
-.close-btn:hover { color: white; }
+.close-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 20px;
+    cursor: pointer;
+}
 
-.left-drawer { left: 0; transform: translateX(-100%); }
-.left-drawer.active { transform: translateX(0); }
-.right-drawer { right: 0; transform: translateX(100%); }
-.right-drawer.active { transform: translateX(0); }
+.close-btn:hover {
+    color: white;
+}
+
+.left-drawer {
+    left: 0;
+    transform: translateX(-100%);
+}
+
+.left-drawer.active {
+    transform: translateX(0);
+}
+
+.right-drawer {
+    right: 0;
+    transform: translateX(100%);
+}
+
+.right-drawer.active {
+    transform: translateX(0);
+}
+
+#settings-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 20px;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+#settings-content::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
 
 /* --- SLEEK LIST TILES --- */
+
+/* Scroll Chevron Indicator */
+.scroll-indicator {
+    position: absolute;
+    bottom: 25px;
+    /* Moved up slightly */
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    /* High contrast */
+    font-size: 32px;
+    /* Larger */
+    animation: bounce 2s infinite;
+    pointer-events: none;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    /* Drop shadow for visibility */
+}
+
+.drawer.has-more-content .scroll-indicator {
+    opacity: 1;
+}
+
+@keyframes bounce {
+
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    40% {
+        transform: translateX(-50%) translateY(-10px);
+    }
+
+    60% {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}
+
+/* Wrapper for scroll indicators - apply to the left drawer */
+/* #library-drawer uses inherited fixed positioning */
+
+/* Scroll fade indicators */
+#library-drawer::before,
+#library-drawer::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 60px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Top fade - indicates more content above */
+#library-drawer::before {
+    top: 80px;
+    /* Below header */
+    background: linear-gradient(to bottom, var(--drawer-bg) 0%, transparent 100%);
+}
+
+/* Bottom fade - indicates more content below */
+#library-drawer::after {
+    bottom: 0;
+    background: linear-gradient(to top, var(--drawer-bg) 0%, transparent 100%);
+}
+
+/* Show bottom fade by default when there's content */
+#library-drawer.active::after {
+    opacity: 1;
+}
+
+/* States controlled by JS - when at top, hide top fade */
+#library-drawer.scroll-top::before {
+    opacity: 0;
+}
+
+/* When scrolled, show top fade */
+#library-drawer.scroll-middle::before,
+#library-drawer.scroll-bottom::before {
+    opacity: 1;
+}
+
+/* When at bottom, hide bottom fade */
+#library-drawer.scroll-bottom::after {
+    opacity: 0;
+}
+
 .grid-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 16px;
+    /* Optimized gap for card layout */
+    /* Increased from 8px for better spacing */
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+    flex: 1;
+    min-height: 0;
+    /* Critical for nested flex scrolling */
+    padding-bottom: 40px;
+    /* Extra padding for bottom fade */
+    padding-top: 10px;
+    scroll-behavior: smooth;
+}
+
+.grid-container::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
 }
 
 .theme-tile {
     width: 100%;
-    height: 60px;
+    height: 80px;
+    flex-shrink: 0;
+    /* Forces height to be respected, enabling scroll */
+    /* Premium height */
     display: flex;
     align-items: center;
-    padding: 0 20px;
-    background: transparent;
-    border: 1px solid var(--border-dim);
-    border-radius: 6px;
+    padding: 0 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border: none;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
 }
 
 .theme-tile:hover {
-    border-color: #666;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .theme-tile.active {
-    border-color: var(--border-active);
-    background: #000;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
 }
 
-.tile-text { font-size: 13px; color: var(--text-dim); font-weight: 500; }
-.theme-tile.active .tile-text { color: white; }
+.tile-text {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 500;
+}
+
+.theme-tile.active .tile-text {
+    color: white;
+}
 
 /* --- SESSION MANAGER --- */
 .session-handle {
@@ -206,7 +424,10 @@ body.fullscreen-mode #btn-exit-fs:hover {
     transition: all 0.3s ease;
 }
 
-.session-handle:hover { background: #151515; height: 45px; }
+.session-handle:hover {
+    background: #151515;
+    height: 45px;
+}
 
 .handle-bar {
     width: 40px;
@@ -229,7 +450,10 @@ body.fullscreen-mode #btn-exit-fs:hover {
     background: var(--success);
     box-shadow: 0 0 10px var(--success);
 }
-.session-handle.meditating #session-status-text { color: var(--success); }
+
+.session-handle.meditating #session-status-text {
+    color: var(--success);
+}
 
 .bottom-drawer {
     position: fixed;
@@ -246,9 +470,14 @@ body.fullscreen-mode #btn-exit-fs:hover {
     justify-content: center;
     align-items: center;
 }
-.bottom-drawer.active { transform: translateY(0); }
 
-.session-content { text-align: center; }
+.bottom-drawer.active {
+    transform: translateY(0);
+}
+
+.session-content {
+    text-align: center;
+}
 
 #session-timer {
     font-family: 'JetBrains Mono', monospace;
@@ -276,14 +505,28 @@ body.fullscreen-mode #btn-exit-fs:hover {
     border-radius: 50px;
     transition: all 0.2s;
 }
-#btn-session-toggle:hover { background: white; color: black; }
+
+#btn-session-toggle:hover {
+    background: white;
+    color: black;
+}
 
 /* Stop Mode */
-#btn-session-toggle.stop-mode { border-color: #ff5f57; color: #ff5f57; }
-#btn-session-toggle.stop-mode:hover { background: #ff5f57; color: white; }
+#btn-session-toggle.stop-mode {
+    border-color: #ff5f57;
+    color: #ff5f57;
+}
+
+#btn-session-toggle.stop-mode:hover {
+    background: #ff5f57;
+    color: white;
+}
 
 /* --- SETTINGS --- */
-.setting-item { margin-bottom: 30px; }
+.setting-item {
+    margin-bottom: 30px;
+}
+
 .setting-label {
     display: block;
     color: var(--text-dim);
@@ -292,11 +535,28 @@ body.fullscreen-mode #btn-exit-fs:hover {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; height: 12px; width: 12px; background: #ffffff; cursor: pointer; margin-top: -5px;
+
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
 }
-input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cursor: pointer; background: #333; }
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    margin-top: -5px;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 2px;
+    cursor: pointer;
+    background: #333;
+}
 
 /* --- NEW SETTINGS STYLES --- */
 
@@ -334,6 +594,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cur
     font-size: 12px;
     text-transform: uppercase;
 }
+
 .setting-select:focus {
     border-color: white;
     outline: none;
@@ -348,7 +609,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cur
     gap: 10px;
     width: 100%;
     /* Max width allows the big button to breathe, but constrains the form */
-    max-width: 600px; 
+    max-width: 600px;
     margin: 20px auto 0;
     padding: 0 10px;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -361,7 +622,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cur
     font-size: 14px;
     letter-spacing: 2px;
     border-radius: 50px;
-    
+
     background: transparent;
     border: 1px solid #ffffff;
     color: white;
@@ -369,13 +630,13 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cur
     text-transform: uppercase;
     cursor: pointer;
     white-space: nowrap;
-    
+
     /* Smooth Morphing */
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    
+
     /* Default Flex: fit content */
-    flex: 0 0 auto; 
-    height: auto; 
+    flex: 0 0 auto;
+    height: auto;
 }
 
 #btn-session-toggle:hover {
@@ -387,6 +648,7 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cur
     border-color: #ff5f57;
     color: #ff5f57;
 }
+
 #btn-session-toggle.stop-mode:hover {
     background: #ff5f57;
     color: white;
@@ -396,29 +658,36 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cur
 
 /* When the parent has class .sync-layout, we force the button to shrink */
 #controls-row.sync-layout #btn-session-toggle {
-    height: 46px;        /* Fixed height to match inputs */
-    padding: 0 20px;     /* Reduce padding */
-    font-size: 11px;     /* Smaller text */
+    height: 46px;
+    /* Fixed height to match inputs */
+    padding: 0 20px;
+    /* Reduce padding */
+    font-size: 11px;
+    /* Smaller text */
     letter-spacing: 1.5px;
-    border-color: rgba(255, 255, 255, 0.3); /* Dimmer border to match group */
+    border-color: rgba(255, 255, 255, 0.3);
+    /* Dimmer border to match group */
     background: transparent;
     color: white;
-    min-width: 140px;    /* Ensure text fits */
+    min-width: 140px;
+    /* Ensure text fits */
 }
 
 /* Make sure hover effects still work in small mode */
 #controls-row.sync-layout #btn-session-toggle:hover {
     border-color: white;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     color: white;
 }
 
 /* --- THE SYNC GROUP (Inputs) --- */
 #sync-group {
-    display: none; /* Hidden by default */
+    display: none;
+    /* Hidden by default */
     flex: 1;
     gap: 8px;
-    height: 46px; /* Matches the shrunk button height */
+    height: 46px;
+    /* Matches the shrunk button height */
     opacity: 0;
     transform: translateX(10px);
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -449,7 +718,11 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cur
     outline: none;
     padding: 0 15px;
 }
-#user-input:focus { border-color: white; background: rgba(255,255,255,0.05); }
+
+#user-input:focus {
+    border-color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
 
 #btn-sync {
     flex: 0 0 auto;
@@ -467,4 +740,9 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cur
     cursor: pointer;
     white-space: nowrap;
 }
-#btn-sync:hover { background: white; color: black; border-color: white; }
+
+#btn-sync:hover {
+    background: white;
+    color: black;
+    border-color: white;
+}
