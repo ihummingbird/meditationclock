@@ -2,6 +2,11 @@ Meditation Clock
 
 ![A pic of the webpage](hiAgainNova.png)
 
+
+# Currently it's available to use at https://ihummingbird.github.io/meditationclock/
+## I'm working on a domain, if you want you can sponsor a domain for me :D
+
+
 A distraction-free, environment for meditation.
 
 I built this because I wanted a way to meditate with my eyes open without the clutter of modern interfaces. Most clock apps are too bright, have ads, or require subscriptions.
