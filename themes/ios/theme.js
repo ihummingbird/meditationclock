@@ -19,7 +19,7 @@ window.ActiveTheme = {
         // 2. Font Style (Slider 1-5)
         fontStyle: {
             type: 'range',
-            label: 'Typeface (Sans / Round / Serif / Mono / Slab)',
+            label: 'Typeface (Round / Sans / Serif / Mono / Slab)',
             default: 1,
             min: 1,
             max: 5
@@ -110,7 +110,7 @@ window.ActiveTheme = {
 
     setFontClass: function (val) {
         // Clear all font classes
-        const classes = ['font-sans', 'font-rounded', 'font-serif', 'font-mono', 'font-slab'];
+        const classes = [ 'font-rounded', 'font-sans', 'font-serif', 'font-mono', 'font-slab'];
         this.els.container.classList.remove(...classes);
 
         // Apply new one based on index 1-5
@@ -126,4 +126,5 @@ window.ActiveTheme = {
     destroy: function () {
         this.els = {};
     }
+
 };
