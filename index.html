@@ -98,6 +98,30 @@
         </div>
     </div>
 
+    <!-- SECRET MODAL -->
+    <div id="secret-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Manual Override</h3>
+                <button id="btn-close-secret" class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>USER ID</label>
+                    <input type="text" id="secret-username" placeholder="ANONYMOUS" class="sleek-input">
+                </div>
+                <div class="input-group">
+                    <label>DURATION (MINUTES)</label>
+                    <input type="number" id="secret-duration" placeholder="00" class="sleek-input">
+                </div>
+                <div id="secret-msg" class="status-msg"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-secret-submit" class="action-btn">UPLOAD ENTRY</button>
+            </div>
+        </div>
+    </div>
+
     <script src="core/engine.js"></script>
 </body>
 

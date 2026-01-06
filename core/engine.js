@@ -102,6 +102,9 @@ const Engine = {
 
         // Scroll fade indicator for theme library
         this.initScrollIndicators();
+
+        // SECRET LISTENERS
+        this.initSecretFeatures();
     },
 
     initScrollIndicators: function () {
@@ -452,6 +455,108 @@ const Engine = {
             const diff = Date.now() - this.session.startTime;
             this.dom.sessionTimer.innerText = this.formatTime(diff);
         }
+    },
+    initSecretFeatures: function () {
+        // Elements
+        const modal = document.getElementById('secret-modal');
+        const btnClose = document.getElementById('btn-close-secret');
+        const btnSubmit = document.getElementById('btn-secret-submit');
+        const inputUser = document.getElementById('secret-username');
+        const inputDuration = document.getElementById('secret-duration');
+        const msg = document.getElementById('secret-msg');
+
+        if (!modal) return;
+
+        // 1. KEYBOARD TRIGGER (Ctrl + Alt + Shift + M)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === 'm' || e.key === 'M')) {
+                e.preventDefault();
+                this.openSecretModal();
+            }
+        });
+
+        // 2. INPUT TRIGGER (MANUALINPUT)
+        if (this.dom.userInput) {
+            this.dom.userInput.addEventListener('input', (e) => {
+                const val = e.target.value.toUpperCase();
+                if (val === 'MANUALINPUT' || val === 'MANUALNPUT') {
+                    // Revert to last saved user instead of clearing
+                    const savedUser = localStorage.getItem('meditation_user') || '';
+                    e.target.value = savedUser;
+                    this.openSecretModal();
+                }
+            });
+        }
+
+        // Close Logic
+        btnClose.addEventListener('click', () => this.closeSecretModal());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeSecretModal();
+        });
+
+        // Submit Logic
+        btnSubmit.addEventListener('click', () => {
+            const user = inputUser.value.trim() || 'ANONYMOUS';
+            const mins = parseInt(inputDuration.value);
+
+            if (!mins || mins <= 0) {
+                msg.innerText = "INVALID DURATION";
+                msg.style.color = "#ff5f57";
+                return;
+            }
+
+            // Reuse sync logic but manually
+            msg.innerText = "UPLOADING...";
+            msg.style.color = "white";
+            btnSubmit.disabled = true;
+
+            const durationSecs = mins * 60;
+
+            fetch(this.API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    username: user,
+                    duration: durationSecs
+                })
+            })
+                .then(() => {
+                    msg.innerText = "ENTRY SAVED ✓";
+                    msg.style.color = "#50fa7b";
+                    btnSubmit.innerText = "SUCCESS";
+                    setTimeout(() => {
+                        this.closeSecretModal();
+                        // Reset button state
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerText = "UPLOAD ENTRY";
+                        msg.innerText = "";
+                        inputDuration.value = "";
+                    }, 1500);
+                })
+                .catch(err => {
+                    console.error(err);
+                    msg.innerText = "UPLOAD FAILED";
+                    msg.style.color = "#ff5f57";
+                    btnSubmit.disabled = false;
+                });
+        });
+    },
+
+    openSecretModal: function () {
+        const modal = document.getElementById('secret-modal');
+        const inputUser = document.getElementById('secret-username');
+        if (modal) {
+            modal.classList.add('active');
+            // Pre-fill user if we have one stored
+            const savedUser = localStorage.getItem('meditation_user');
+            if (savedUser) inputUser.value = savedUser;
+            inputUser.focus();
+        }
+    },
+
+    closeSecretModal: function () {
+        const modal = document.getElementById('secret-modal');
+        if (modal) modal.classList.remove('active');
     }
 };
 
