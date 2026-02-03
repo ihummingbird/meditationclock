@@ -3,8 +3,8 @@ Meditation Clock
 ![A pic of the webpage](hiAgainNova.png)
 
 
-# Currently it's available to use at [ihummingbird.github.io/meditationclock/](https://ihummingbird.github.io/meditationclock/) and [meditationclock.ihummingbird.workers.dev](https://meditationclock.ihummingbird.workers.dev)
-## I'm working on a domain, if you want you can sponsor a domain for me :D
+# Currently it's available to use at [Meditationclock.ir](https://www.Meditationclock.ir)
+### Alternatively at [ihummingbird.github.io/meditationclock/](https://ihummingbird.github.io/meditationclock/) and [meditationclock.ihummingbird.workers.dev](https://meditationclock.ihummingbird.workers.dev)
 
 
 A distraction-free, environment for meditation.
