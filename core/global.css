@@ -223,11 +223,12 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); backgrou
     background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border);
     border-radius: 100px; padding: 0 24px; 
     color: white; font-family: 'JetBrains Mono'; font-size: 14px; outline: none;
-    text-align: center; /* Centered Input */
+    text-align: center; 
+    text-transform: uppercase; /* FIX: ALWAYS UPPERCASE */
     transition: 0.3s;
 }
 #user-input:focus { background: rgba(255,255,255,0.15); border-color: white; }
-#user-input::placeholder { color: rgba(255,255,255,0.3); }
+#user-input::placeholder { color: rgba(255,255,255,0.3); text-transform: uppercase; }
 
 #btn-sync {
     min-width: 90px; height: 100%;
