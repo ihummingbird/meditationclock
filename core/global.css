@@ -84,7 +84,7 @@ a { text-decoration: none; }
     z-index: 2000; padding: 24px;
     border: 1px solid var(--glass-border); border-radius: 30px;
     transition: transform 0.6s var(--spring-easing);
-    display: flex; flex-direction: column;
+    display: flex; flex-direction: column; overflow: hidden; /* Prevent the whole drawer from scrolling (we want the inside to scroll) */
 }
 .left-drawer { left: 20px; transform: translateX(calc(-100% - 30px)); }
 .right-drawer { right: 20px; transform: translateX(calc(100% + 30px)); }
@@ -110,6 +110,8 @@ a { text-decoration: none; }
     padding-bottom: 20px;
     scrollbar-width: none;  /* Firefox */
     -ms-overflow-style: none;  /* IE */
+    /* This is vital: it prevents the container from expanding past the flex parent */
+    min-height: 0;  
 }
 .grid-container::-webkit-scrollbar { display: none; }
 
