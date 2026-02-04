@@ -275,7 +275,34 @@ const Engine = {
                     grid.appendChild(swatch);
                 });
                 wrapper.appendChild(grid);
+
+                
+            } else if (setting.type === 'select') {
+                const label = document.createElement('div');
+                
+
+                const select = document.createElement('select');
+                select.className = 'setting-select'; // We will style this class next
+
+                setting.options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.innerText = opt.text;
+                    
+                    const currentVal = this.state.themeSettings[themeId]?.[key] || setting.default;
+                    if (opt.value == currentVal) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+
+                select.onchange = (e) => {
+                    this.updateSetting(themeId, key, e.target.value);
+                };
+                wrapper.appendChild(select);
             }
+            // ^^^^ --- END OF NEW BLOCK --- ^^^^
+
             container.appendChild(wrapper);
         }
     },
