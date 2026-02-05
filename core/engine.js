@@ -410,7 +410,7 @@ const Engine = {
             msg.innerText = "UPLOADING...";
             fetch(this.API_URL, {
                 method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ username: user, duration: mins * 60 })
+                body: JSON.stringify({ username: user, duration: (mins * 60) + 1 })
             }).then(() => {
                 msg.innerText = "SAVED ✓";
                 setTimeout(() => modal.classList.remove('active'), 1000);
@@ -427,5 +427,6 @@ const Engine = {
         }
     }
 };
+
 
 Engine.init();
