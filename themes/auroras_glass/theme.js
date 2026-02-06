@@ -65,8 +65,7 @@ window.ActiveTheme = {
                                 <span class="ss">00</span>
                             </div>
                             <div class="footer">
-                                <div class="pill label">Meditation Clock</div>
-                                <div class="pill date"></div>
+                                <div class="pill date"></div> 
                             </div>
                         </div>
                     </div>
@@ -162,4 +161,5 @@ window.ActiveTheme = {
         // Cleanup if needed
         this.els = {};
     }
+
 };
