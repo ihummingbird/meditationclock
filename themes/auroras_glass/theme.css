@@ -137,6 +137,12 @@
 .time-block .ss {
     font-size: clamp(38px, 18vw, 240px);
     line-height: 1;
+    
+}
+
+/* Sloppy second fix*/
+.time-block .ss {
+    width: 5%;
 }
 
 .time-block .dot {
@@ -160,6 +166,7 @@
     font-size: clamp(10px, 2vw, 14px);
     text-transform: uppercase;
     letter-spacing: 0.12em;
+    padding: 1vh;
     
 }
 

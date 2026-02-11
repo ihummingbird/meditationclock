@@ -1,223 +1,201 @@
 :root {
-    --zo-accent: #7fe0d5;
-    --zo-secondary: #b385ff;
+    /* Apple-style Vibrant Palette Defaults */
+    --zo-p1: #FF2D55; /* Pink */
+    --zo-p2: #5856D6; /* Purple */
+    --zo-p3: #007AFF; /* Blue */
+    
     --zo-scale: 1;
-    --zo-orbit-speed: 14s;
-    --zo-ring-weight: 4px;
-    --zo-glow: 35%;
-    --zo-text: #fefefe;
+    --zo-ring-weight: 2px; /* Thinner, elegant rings */
+    --zo-glow: 1;
+    --zo-text: #ffffff;
+    
+    --size-outer: 100%; 
+    --size-inner: 68%;
 }
 
+/* --- 1. STAGE & ATMOSPHERE --- */
 .zen-stage {
     position: relative;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at 20% 20%, #05080f, #020204 70%);
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    color: var(--zo-text);
-    font-family: "Inter", "SF Pro Display", system-ui, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.zen-stage::after {
-    content: "";
+/* The Breathing Mesh Gradient Background */
+.zen-aurora {
     position: absolute;
-    inset: 0;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-    background-size: 200px 200px;
-    opacity: 0.15;
-    pointer-events: none;
+    width: 140vmin;
+    height: 140vmin;
+    background: 
+        radial-gradient(circle at 50% 0%, var(--zo-p2), transparent 60%),
+        radial-gradient(circle at 80% 50%, var(--zo-p3), transparent 60%),
+        radial-gradient(circle at 20% 80%, var(--zo-p1), transparent 60%);
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: aurora-spin 20s linear infinite alternate;
+    will-change: transform, opacity;
 }
 
-.zen-gradient {
-    position: absolute;
-    inset: -30%;
-    background: conic-gradient(from 45deg,
-            rgba(5, 201, 255, 0.35),
-            rgba(139, 92, 246, 0.25),
-            rgba(4, 34, 66, 0.5),
-            rgba(207, 148, 255, 0.25),
-            rgba(5, 201, 255, 0.35));
-    animation: swirl 60s linear infinite;
-    filter: blur(120px);
-    opacity: 0.55;
+@keyframes aurora-spin {
+    0% { transform: rotate(0deg) scale(1); opacity: 0.4; }
+    100% { transform: rotate(45deg) scale(1.1); opacity: 0.6; }
 }
 
-@keyframes swirl {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
+/* --- 2. THE SHELL --- */
 .zen-shell {
     position: relative;
-    width: min(92vmin, 580px);
-    height: min(92vmin, 580px);
-    aspect-ratio: 1 / 1;
+    width: min(85vmin, 460px);
+    height: min(85vmin, 460px);
     display: flex;
     align-items: center;
     justify-content: center;
     transform: scale(var(--zo-scale));
-    transition: transform 0.4s ease;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.zen-core {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.7));
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.04),
-        inset 0 0 40px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-}
-
-.zen-core::after {
-    content: "";
+/* Glass Capsule Logic */
+.glass-capsule {
     position: absolute;
-    inset: 4%;
+    width: 55%;
+    height: 55%;
     border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    opacity: 0.6;
-}
-
-.orbit {
-    position: absolute;
-    inset: 6%;
-    border-radius: 50%;
-    border: var(--zo-ring-weight) solid color-mix(in srgb, var(--zo-accent) 50%, transparent);
-    filter: drop-shadow(0 0 30px color-mix(in srgb, var(--zo-accent) var(--zo-glow), transparent));
-    /* animation: orbit var(--zo-orbit-speed) linear infinite; REMOVED FOR JS SYNC */
-    will-change: transform;
-    mix-blend-mode: screen;
-}
-
-.orbit.secondary {
-    inset: 16%;
-    border-color: color-mix(in srgb, var(--zo-secondary) 55%, transparent);
-    /* animation-duration: calc(var(--zo-orbit-speed) * 1.5); REMOVED */
-}
-
-/* @keyframes orbit { ... } REMOVED */
-
-.orbit::after {
-    content: "";
-    position: absolute;
-    /* FIX: Center dot on 4px border: -4px aligns centers */
-    top: -4px;
-    right: calc(50% - 6px);
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--zo-accent);
-    box-shadow:
-        0 0 20px color-mix(in srgb, var(--zo-accent) var(--zo-glow), transparent),
-        0 0 40px color-mix(in srgb, var(--zo-accent) 70%, transparent);
-}
-
-.orbit.secondary::after {
-    background: var(--zo-secondary);
-}
-
-.zen-content {
-    position: absolute;
-    inset: 10%;
-    border-radius: 50%;
+    background: rgba(20, 20, 25, 0.4);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 
+        0 20px 40px rgba(0,0,0,0.4),
+        inset 0 0 20px rgba(255,255,255,0.05);
+    z-index: 10;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-transform: uppercase;
-    gap: 12px;
-    /* Tighter gap */
-    z-index: 2;
-    text-align: center;
 }
 
+/* --- 3. THE RINGS (Perfectly Aligned) --- */
+.ring-container {
+    position: absolute;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.ring-outer { width: var(--size-outer); height: var(--size-outer); z-index: 2; }
+.ring-inner { width: var(--size-inner); height: var(--size-inner); z-index: 3; }
+
+/* The Static Track (Faint Line) */
+.track {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: var(--zo-ring-weight) solid rgba(255, 255, 255, 0.15);
+}
+
+/* The Rotating Hand */
+.hand {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    will-change: transform;
+}
+
+/* The Jewel Dot */
+.dot {
+    position: absolute;
+    width: 16px; 
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    
+    /* ALIGNMENT MATH: Keeps dot on center of line */
+    left: 50%;
+    top: calc(var(--zo-ring-weight) / 2);
+    transform: translate(-50%, -50%);
+    
+    /* Apple Style Glow */
+    box-shadow: 
+        0 0 0 2px rgba(0,0,0,0.5), /* Contrast Ring */
+        0 0 15px var(--zo-dot-color),
+        0 0 30px var(--zo-dot-color);
+}
+
+/* Outer Dot Color */
+.ring-outer .dot { --zo-dot-color: var(--zo-p3); }
+/* Inner Dot Color */
+.ring-inner .dot { --zo-dot-color: var(--zo-p1); }
+
+
+/* --- 4. TYPOGRAPHY (San Francisco Style) --- */
 .time-stack {
+    text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0;
-    /* Tighten Time Stack */
-    letter-spacing: 0.2em;
+    justify-content: center;
+    /* Optical vertical correction */
+    transform: translateY(-2px); 
 }
 
-.time-stack .hours {
-    font-size: clamp(48px, 14vmin, 120px);
+.ts-hours {
+    font-size: 5rem;
+    font-weight: 800; /* Heavy */
+    letter-spacing: -0.02em; /* Tight Apple kerning */
+    line-height: 0.9;
+    
+    /* Gradient Text */
+    background: linear-gradient(135deg, #fff 20%, rgba(255,255,255,0.5) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 10px rgba(0,0,0,0.3));
+}
+
+.ts-minutes {
+    font-size: 5rem;
+    font-weight: 200; /* Thin */
+    letter-spacing: -0.02em;
+    line-height: 0.9;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.ts-seconds {
+    font-size: 1rem;
     font-weight: 600;
-    letter-spacing: 0.35em;
-    line-height: 1;
+    letter-spacing: 0.1em;
+    color: var(--zo-p2);
+    margin-top: 12px;
+    text-transform: uppercase;
+    opacity: 0.9;
 }
 
-.time-stack .minutes {
-    font-size: clamp(28px, 8vmin, 80px);
-    opacity: 0.85;
-    letter-spacing: 0.4em;
-    line-height: 1.2;
-}
-
-/* Removed the bullet point ::before on .minutes for better alignment */
-.time-stack .minutes::before {
-    content: none;
-}
-
-.seconds {
-    font-size: clamp(16px, 4.5vmin, 36px);
-    letter-spacing: 0.6em;
-    opacity: 0.55;
-}
-
-.footer-info {
+.meta-info {
+    position: absolute;
+    bottom: 25px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: clamp(11px, 2.4vmin, 16px);
-    letter-spacing: 0.32em;
-    opacity: 0.7;
+    gap: 8px;
 }
 
-.footer-info .date-line {
-    color: color-mix(in srgb, var(--zo-text) 80%, transparent);
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+    .ts-hours, .ts-minutes { font-size: 3.5rem; }
+    .glass-capsule { width: 60%; height: 60%; }
 }
 
-.footer-info .zone-pill {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    letter-spacing: 0.3em;
-}
-
-/* Layout options */
-.zen-shell[data-layout="minimal"] .seconds,
-.zen-shell[data-layout="minimal"] .zone-pill {
-    display: none;
-}
-
-.zen-shell[data-layout="minimal"] .time-stack {
-    gap: 12px;
-}
-
-@media (max-width: 520px) {
-    .zen-shell {
-        width: min(82vw, 460px);
-        height: min(82vw, 460px);
-    }
-}
-
-@media (max-aspect-ratio: 9/16) {
-    .zen-shell {
-        transform: scale(calc(var(--zo-scale) * 0.92));
-    }
+/* Minimal Layout State */
+.zen-shell[data-mode="minimal"] .ts-seconds,
+.zen-shell[data-mode="minimal"] .meta-info {
+    opacity: 0;
+    transition: 0.3s;
 }

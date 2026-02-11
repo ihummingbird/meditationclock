@@ -1,106 +1,92 @@
+/* THEME: Zen Orbit */
+
 :root {
-    --text-color: #ffffff;
-    
-    /* Variables used for safe zone padding inside the overlay */
-    --nav-height: 80px; 
-    --bottom-height: 80px;
+    --zen-size: 100vmin;
+    --zen-hue: 190;
 }
 
-body {
-    margin: 0;
-    background: #000;
+.zen-stage {
+    width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: center;
     overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(circle at center, #1a1a1a 0%, #000 70%);
 }
 
-/* --- ROOT CONTAINER --- */
-/* This ensures everything stays centered on screen */
-#zen-root {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-}
-
-/* --- THE SCALER DIV --- */
-/* This is what we resize with the slider */
-#zen-scaler {
+.zen-scaler {
     position: relative;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 100vw; height: 100vh;
+    display: flex; justify-content: center; align-items: center;
     transform-origin: center center;
-    transition: transform 0.1s linear; /* Smooth zooming */
+    transition: transform 0.1s linear;
     will-change: transform;
 }
 
-/* --- CANVAS (Inside Scaler) --- */
-#zen-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
+.zen-canvas {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
 }
 
-/* --- TEXT OVERLAY (Inside Scaler) --- */
+/* --- OVERLAY FIXED --- */
 .zen-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
+    z-index: 2;
     pointer-events: none;
     
+    /* Ensure overlay fills the space but allows text to flow */
+    width: 100%;
+    height: 100%;
+    
+    /* Center vertical only */
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
     
-    /* Padding is applied inside the scaler so relative positions stay correct */
-    padding-top: var(--nav-height);
-    padding-bottom: var(--bottom-height);
-    box-sizing: border-box;
-    
-    color: var(--text-color);
-    text-align: center;
+    color: white;
+    opacity: 0.95;
 }
-
-/* --- TYPOGRAPHY --- */
 
 .zen-time {
-    font-size: 18vw;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: calc(var(--zen-size) * 0.14);
     font-weight: 200;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    text-shadow: 0 0 30px rgba(0,0,0,0.5);
-    margin-bottom: 10px;
-    font-feature-settings: "tnum";
-}
-
-@media (min-aspect-ratio: 16/9) {
-    .zen-time { font-size: 25vh; }
+    letter-spacing: -0.04em;
+    
+    /* 1. Force Full Width & Text Center */
+    width: 100%;
+    text-align: center;
+    
+    /* 2. Visual Center Fix */
+    /* Nudges text slightly left to fix the "Right-Shift" illusion */
+    margin-right: 0.04em; 
+    
+    /* 3. Height fixes */
+    line-height: 0;
+    padding-top: 1.5vmin; /* Baseline correction */
+    
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    
+    /* Ensure numbers are equal width (Monospace) */
+    font-feature-settings: "tnum"; 
+    font-variant-numeric: tabular-nums;
+    
+    position: relative;
 }
 
 .zen-date {
-    font-size: 4vmin;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: calc(var(--zen-size) * 0.035);
     font-weight: 400;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.3em;
+    opacity: 0.6;
     text-transform: uppercase;
-    opacity: 0.7;
-    margin-bottom: 5px;
-}
-
-.zen-label {
-    font-size: 2.5vmin;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    color: rgba(255,255,255,0.4);
-    text-transform: uppercase;
+    
+    /* Absolute positioning to float freely above time */
+    position: absolute;
+    bottom: 58%; 
+    
+    /* Center Horizontally */
+    width: 100%;
+    text-align: center;
+    left: 0;
 }

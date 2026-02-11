@@ -8,23 +8,23 @@ const Engine = {
     themes: [
         { id: 'simple', name: 'Simple Digital' },
         { id: 'breathe', name: '☆ Deep Breathing' },
-        { id: 'ios', name: 'Standby Mode' },
+        { id: 'ios', name: '☆ Standby Mode' },
         { id: 'analog', name: '☆ Analog Standby' },
         { id: 'lcd', name: 'Retro LCD' },
-        { id: 'industrial_digital_clock', name: 'Industrial Digital Clock' },
-        { id: 'cyberpunk_digital', name: '☆ Cyberpunk Digital' },
+        { id: 'industrial_digital_clock', name: 'Industrial Clock' },
+        { id: 'cyberpunk_digital', name: '☆ Cyberpunk' },
         { id: 'ethereal_tides', name: '☆ Ethereal Tides' },
         { id: 'astral_tides', name: '☆ Astral Tides' },
-        { id: 'mail', name: '☆ Nostalgia' },
+        { id: 'mail', name: 'Nostalgia' },
         { id: 'circular', name: '☆ Circular' },
         { id: 'auroras_glass', name: '☆ Auroras Glass' },
         { id: 'zen_orbit', name: '☆ Zen Orbit' },
+        { id: 'machinarium', name: '☆ Machinarium' },
         { id: 'solstice_prism', name: 'Solstice Prism' },
         { id: 'horizon_loom', name: 'Horizon Loom' },
         { id: 'chronos_gyre', name: 'Chronos Gyre' },
-        { id: 'celestial_chronos', name: '☆ Celestial Chronos' }
-
-
+        { id: 'celestial_chronos', name: 'Celestial' },
+        { id: 'the_board', name: '☆ The Board' }
 
     ],
     state: {

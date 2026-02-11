@@ -24,9 +24,14 @@ body {
 /* --- NAVBAR (Rigid Geometry + Thinner Fonts) --- */
 #navbar {
     position: fixed; top: 0; left: 0;
-    width: 100%; height: 80px; 
+    width: 100%;
+    /* OLD: height: 80px; */
+    /* NEW: Fluid height */
+    height: clamp(60px, 10vh, 80px);
     display: flex; justify-content: space-between; align-items: center;
-    padding: 0 32px; 
+    /* OLD: padding: 0 32px; */
+    /* NEW: Fluid padding */
+    padding: 0 clamp(16px, 4vw, 32px);
     z-index: 1500;
     background: var(--glass-fill);
     backdrop-filter: blur(25px) saturate(180%);
@@ -40,19 +45,22 @@ a { text-decoration: none; }
 .nav-brand {
     position: absolute; left: 50%; transform: translateX(-50%);
     font-family: 'Inter', sans-serif;
-    font-size: 15px; 
-    text-transform: uppercase; 
-    letter-spacing: 0.35em; 
-    font-weight: 600; /* Thinned down */
+    /* OLD: font-size: 15px; */
+    /* NEW: Fluid font size */
+    font-size: clamp(12px, 2.2vw, 15px);
+    text-transform: uppercase;
+    letter-spacing: 0.35em;
+    font-weight: 600;
     opacity: 0.9;
     white-space: nowrap;
+    text-align: center; /* Added for multi-line support */
 }
 
 .nav-btn {
     background: var(--glass-highlight);
     border: 1px solid var(--glass-border);
     color: var(--text-main);
-    cursor: pointer; 
+    cursor: pointer;
     transition: all 0.4s var(--spring-easing);
     display: flex; align-items: center; justify-content: center;
     font-family: 'Inter', sans-serif;
@@ -62,18 +70,33 @@ a { text-decoration: none; }
 
 /* Left: Pills */
 .nav-left .nav-btn {
-    padding: 12px 24px; 
+    /* OLD: padding: 12px 24px; */
+    /* NEW: Fluid padding */
+    padding: clamp(8px, 1.5vh, 12px) clamp(16px, 3vw, 24px);
     border-radius: 100px;
-    font-size: 13px; font-weight: 500;
+    /* OLD: font-size: 13px; */
+    /* NEW: Fluid font size */
+    font-size: clamp(12px, 1.8vw, 13px);
+    font-weight: 500;
     gap: 10px;
 }
-.nav-left .icon { font-size: 16px; margin-top: -2px; }
+.nav-left .icon {
+    /* OLD: font-size: 16px; */
+    /* NEW: Fluid font size */
+    font-size: clamp(14px, 2vw, 16px);
+    margin-top: -2px;
+}
 
 /* Right: Perfect Circles */
 .nav-right .nav-btn {
-    width: 48px; height: 48px; 
-    padding: 0; border-radius: 50%; 
-    font-size: 18px; 
+    /* OLD: width: 48px; height: 48px; */
+    /* NEW: Fluid size */
+    width: clamp(40px, 6vh, 48px);
+    height: clamp(40px, 6vh, 48px);
+    padding: 0; border-radius: 50%;
+    /* OLD: font-size: 18px; */
+    /* NEW: Fluid font size */
+    font-size: clamp(16px, 2.5vw, 18px);
 }
 
 /* --- DRAWERS --- */
@@ -208,11 +231,14 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); backgrou
     cursor: pointer; 
     font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim);
     transition: all 0.3s ease;
+
+    
+    
 }
 .session-handle:hover { background: rgba(255,255,255,0.1); color: white; }
 .session-handle.meditating { 
     background: rgba(52, 199, 89, 0.2); color: var(--success); border-color: var(--success);
-    box-shadow: 0 0 30px rgba(52, 199, 89, 0.2); 
+    box-shadow: 0 0 30px rgba(52, 199, 89, 0.4); 
 }
 .handle-bar { width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-bottom: 6px; }
 
@@ -284,6 +310,8 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); backgrou
 }
 #btn-sync:hover { background: white; color: black; }
 
+
+
 /* Sync Layout State */
 #controls-row.sync-layout { gap: 14px; }
 #controls-row.sync-layout #btn-session-toggle { flex: 0 0 130px; background: rgba(255,255,255,0.1); color: white; font-size: 11px; }
@@ -313,28 +341,31 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); backgrou
 .action-btn { width: 100%; background: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
 /* --- EXIT FOCUS BUTTON (Restored Functionality & Position) --- */
+/* --- EXIT FOCUS BUTTON --- */
 #btn-exit-fs {
     position: fixed; 
-    top: 32px; right: 32px; 
+    bottom: 32px; 
+    right: 32px;
     z-index: 9999;
     background: var(--glass-fill); 
     border: 1px solid var(--glass-border); 
     color: white;
     padding: 12px 24px; 
     border-radius: 100px; 
-    font-size: 13px; font-weight: 600;
+    font-size: 13px; 
+    font-weight: 600;
     backdrop-filter: blur(15px);
     
-    /* Fade/Animate Logic */
+    /* Start hidden and below the screen */
     opacity: 0; 
     pointer-events: none; 
-    transform: translateY(-10px);
-    transition: all 0.5s ease;
+    transform: translateY(20px); /* Start further down for a better slide-in */
+    transition: all 0.4s var(--spring-easing); /* Use your nice spring */
 }
 
 /* This class is added by engine.js when entering fullscreen */
 body.fullscreen-mode #btn-exit-fs { 
-    opacity: 1; 
+    opacity: 0.2; 
     pointer-events: auto; 
     transform: translateY(0);
 }
@@ -344,19 +375,38 @@ body.fullscreen-mode #navbar {
     transform: translateY(-100%); 
 }
 
+/* ADD THIS NEW RULE for the hover effect */
+body.fullscreen-mode #btn-exit-fs:hover {
+    opacity: 1; /* Become fully visible */
+    transform: translateY(0px); /* Nope do not Lift up slightly */
+}
+
 /* --- MOBILE RESPONSIVENESS (Consolidated) --- */
-@media (max-width: 600px) {
+@media (max-width: 800px) {
     /* 1. HIDE TEXT & BRAND */
-    .nav-text, .nav-brand { display: none; }
-    
+    .nav-text { display: none; }
+    /* .nav-brand { display: block; } <-- This line is okay, but we will modify the brand */
+
+    /* ADD THIS BLOCK FOR THE TITLE */
+    .nav-brand {
+        white-space: normal; /* Allow the text to wrap */
+        line-height: 1.2;    /* Adjust line spacing */
+        max-width: 150px;    /* Prevent it from getting too wide */
+        letter-spacing: 0.2em; /* Slightly reduce spacing to fit */
+    }
+    /* END OF NEW BLOCK */
+
+
     /* 2. FIX SYMMETRY: Make Left Buttons Perfect Circles like Right Buttons */
     .nav-left .nav-btn {
-        width: 48px; height: 48px;
+        /* OLD: width: 48px; height: 48px; */
+        /* NEW: Use the same fluid values as the right buttons */
+        width: clamp(40px, 6vh, 48px);
+        height: clamp(40px, 6vh, 48px);
         padding: 0;
         border-radius: 50%;
         gap: 0;
     }
-    .nav-left .icon { margin: 0; margin-top: -1px; }
 
     /* 3. DRAWERS */
     .drawer { width: calc(100% - 30px); left: 15px !important; }
@@ -364,7 +414,7 @@ body.fullscreen-mode #navbar {
     
     /* 4. TIMER & HANDLE */
     #session-timer { font-size: 3.5rem; margin-bottom: 25px; }
-    .session-handle { width: 160px; }
+    .session-handle { width: 240px; }
     
     /* 5. FIX FOOTER OVERFLOW (Sync Layout) */
     /* When syncing on mobile, shrink the 'New Session' button to an icon */
@@ -387,5 +437,11 @@ body.fullscreen-mode #navbar {
     #user-input { min-width: 0; padding: 0 15px; } /* Allow shrinking */
     
     /* 6. EXIT BUTTON POSITION */
-    #btn-exit-fs { top: 20px; right: 20px; padding: 10px 20px; }
+    #btn-exit-fs { 
+        bottom: 20px; 
+        right: 20px; 
+        padding: 10px 20px; 
+    }
+
+    
 }

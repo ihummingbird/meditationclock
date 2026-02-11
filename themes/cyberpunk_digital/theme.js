@@ -152,8 +152,7 @@ window.ActiveTheme = {
                 display: flex; 
                 justify-content: center; 
                 align-items: center; 
-                /* ORIGINAL BIG SIZE */
-                font-size: 42vmin; 
+                /* ORIGINAL BIG SIZE */ 
                 line-height: 0.8;
                 margin-top: -2vmin;
             }
@@ -174,12 +173,11 @@ window.ActiveTheme = {
 
             /* --- MOBILE FIXES --- */
             @media (orientation: portrait) {
-                .clock-center { font-size: 28vmin; margin-top: 0; }
+                .clock-center {  margin-top: 0; }
                 .top-left, .top-right, .bottom-left, .bottom-right { font-size: 4vmin; }
                 #lcd-ampm, #lcd-seconds { font-size: 6vmin; }
             }
-
-            /* Pulse Bar */
+ /* Pulse Bar */
             .pulse-bar {
                 width: 8vmin;
                 height: 0.8vmin;

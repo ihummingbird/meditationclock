@@ -150,7 +150,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 25vmin; 
+    /* This scales based on the smaller side of the screen */
+    font-size: clamp(80px, calc(12vw + 12vh), 24vw);  
     line-height: 1;
 }
 

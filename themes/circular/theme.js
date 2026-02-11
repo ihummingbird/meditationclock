@@ -5,8 +5,9 @@ window.ActiveTheme = {
     width: 0,
     height: 0,
 
+    // Config state
     config: {
-        baseColor: { h: 190, s: 100, l: 50 },
+        hue: 190, // Default Cyan
     },
 
     settingsConfig: {
@@ -21,243 +22,201 @@ window.ActiveTheme = {
         mood: {
             type: 'palette',
             label: 'Energy Flow',
-            default: '#00d5ff',
-            options: ['#00d5ff', '#ff0055', '#ccff00', '#aa00ff', '#ffffff']
+            default: '190', // Default Blue
+            options: [
+                '190', // Cyan
+                '340', // Pink/Red
+                '80',  // Lime
+                '270', // Purple
+                '0'    // White/Red
+            ]
         }
     },
 
-    init(stage, savedSettings = {}) {
-        this.destroy();
+    init(stage, settings) {
+        // 1. Set up HTML
+        stage.innerHTML = `
+            <div class="zen-stage">
+                <div id="scaler" class="zen-scaler">
+                    <canvas id="canvas" class="zen-canvas"></canvas>
+                    <div class="zen-overlay">
+                        <div class="zen-date">INITIALIZING</div>
+                        <div class="zen-time">--:--</div>
+                    </div>
+                </div>
+            </div>
+        `;
 
-        // Inject the CSS (Included below)
-        this.injectStyles(`
-            :root {
-                --text-color: #ffffff;
-                --nav-height: 80px; 
-                --bottom-height: 80px;
-                --zen-size: 100vmin; /* Default fallback */
-            }
-            body { margin: 0; background: #000; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-            #zen-root { width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-            #zen-scaler { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; transform-origin: center center; transition: transform 0.1s linear; will-change: transform; }
-            #zen-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-            .zen-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; padding-top: var(--nav-height); padding-bottom: var(--bottom-height); box-sizing: border-box; color: var(--text-color); text-align: center; }
-            
-            /* DYNAMIC SIZING BASED ON CLOCK DIAMETER */
-            .zen-time { 
-                font-size: calc(var(--zen-size) * 0.15); /* Reduced from 0.22 */
-                font-weight: 200; 
-                letter-spacing: -0.03em; 
-                line-height: 1; 
-                text-shadow: 0 0 30px rgba(0,0,0,0.5); 
-                margin-bottom: 10px; 
-                font-feature-settings: "tnum"; 
-            }
-            .zen-date { 
-                font-size: calc(var(--zen-size) * 0.04); /* Reduced from 0.05 */
-                font-weight: 400; 
-                letter-spacing: 0.2em; 
-                text-transform: uppercase; 
-                opacity: 0.7; 
-                margin-bottom: 5px; 
-            }
-            .zen-label { 
-                font-size: calc(var(--zen-size) * 0.025); /* Reduced from 0.03 */
-                font-weight: 600; 
-                letter-spacing: 0.1em; 
-                color: rgba(255,255,255,0.4); 
-                text-transform: uppercase; 
-            }
-        `);
+        // 2. Cache Elements
+        this.els = {
+            scaler: stage.querySelector('#scaler'),
+            canvas: stage.querySelector('#canvas'),
+            time: stage.querySelector('.zen-time'),
+            date: stage.querySelector('.zen-date')
+        };
 
-        stage.innerHTML = this.template();
-        this.cache(stage);
+        // 3. Setup Canvas
+        // alpha: false improves performance on dark backgrounds
+        this.ctx = this.els.canvas.getContext('2d', { alpha: false });
 
-        this.ctx = this.els.canvas.getContext('2d');
-        this.handleResize();
+        // 4. Handle Resize
+        this.boundResize = this.handleResize.bind(this);
         window.addEventListener('resize', this.boundResize);
+        this.handleResize(); // Trigger once immediately
 
-        this.applyColor(savedSettings.mood || '#00d5ff');
-        this.applyZoom(savedSettings.zoom || 100);
+        // 5. Apply Settings
+        const s = settings || {};
+        this.updateSettings(s.mood || '190', s.zoom || 100);
 
+        // 6. Start Loop
         this.animate();
     },
 
-    update() {
-        const now = new Date();
-        const h = now.getHours();
-        const m = now.getMinutes();
-
-        const hStr = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-        const mStr = String(m).padStart(2, '0');
-
-        if (this.els.time) this.els.time.innerText = `${hStr}:${mStr}`;
-
-        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        if (this.els.date) {
-            this.els.date.innerText = `${months[now.getMonth()]} ${now.getDate()}`;
-        }
-
-        if (this.els.label) {
-            this.els.label.innerText = h >= 12 ? 'PM' : 'AM';
-        }
-    },
-
+    // --- MAIN LOOP ---
     animate() {
-        if (!this.els.canvas) return;
+        if (!this.ctx) return;
 
-        this.ctx.clearRect(0, 0, this.width, this.height);
+        // A. Clear Screen (Black)
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(0, 0, this.width, this.height);
 
+        // B. Calculate Time
         const now = new Date();
         const ms = now.getMilliseconds();
         const s = now.getSeconds() + (ms / 1000);
         const m = now.getMinutes() + (s / 60);
         const h = (now.getHours() % 12) + (m / 60);
 
+        // C. Calculate Geometry
         const cx = this.width / 2;
         const cy = this.height / 2;
-
-        // --- FIX: Use Min Dimension for Uniform Radius ---
         const minDim = Math.min(this.width, this.height);
+
+        // D. Draw Rings
+        // We normalize thickness based on screen size (minDim / 800)
         const scale = minDim / 800;
+        
+        // Seconds (Outer, Thin)
+        this.drawComplexRing(cx, cy, minDim * 0.38, s / 60, 2.5 * scale);
+        
+        // Minutes (Middle, Medium)
+        this.drawComplexRing(cx, cy, minDim * 0.30, m / 60, 6 * scale);
+        
+        // Hours (Inner, Thick)
+        this.drawComplexRing(cx, cy, minDim * 0.22, h / 12, 10 * scale);
 
-        // Apply scale to dimensions
-        this.drawRing(cx, cy, minDim * 0.35, s / 60, 2 * scale, 0.8);
-        this.drawRing(cx, cy, minDim * 0.28, m / 60, 6 * scale, 0.5);
-        this.drawRing(cx, cy, minDim * 0.20, h / 12, 12 * scale, 0.3);
-
+        // E. Loop
         this.animationId = requestAnimationFrame(() => this.animate());
     },
 
-    drawRing(cx, cy, radius, progress, thickness, opacity) {
-        // Simple Max Radius Constraint (though minDim usually handles it)
-        const maxR = Math.min(this.width, this.height) * 0.45;
-        if (radius > maxR) radius = maxR; // Cap it strictly
+    // --- UPDATE UI TEXT ---
+    update(timeObj) {
+        // We use the Engine's time object for the text to ensure it matches system clock perfectly
+        if (this.els.time) this.els.time.innerText = `${timeObj.h}:${timeObj.m}`;
 
-        const startAngle = -Math.PI / 2;
-        const endAngle = startAngle + (Math.PI * 2 * progress);
-
-        this.ctx.shadowBlur = 20;
-        this.ctx.shadowColor = `hsla(${this.config.baseColor.h}, ${this.config.baseColor.s}%, 50%, 0.8)`;
-
-        // Track
-        this.ctx.beginPath();
-        this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-        this.ctx.strokeStyle = `hsla(${this.config.baseColor.h}, ${this.config.baseColor.s}%, 30%, 0.1)`;
-        this.ctx.lineWidth = thickness;
-        this.ctx.stroke();
-
-        // Arc
-        this.ctx.beginPath();
-        this.ctx.arc(cx, cy, radius, startAngle, endAngle);
-        this.ctx.strokeStyle = `hsla(${this.config.baseColor.h}, ${this.config.baseColor.s}%, 60%, ${opacity})`;
-        this.ctx.lineWidth = thickness;
-        this.ctx.lineCap = 'round';
-        this.ctx.stroke();
-
-        // Dot
-        const px = cx + Math.cos(endAngle) * radius;
-        const py = cy + Math.sin(endAngle) * radius;
-        this.ctx.beginPath();
-        this.ctx.arc(px, py, thickness * 2, 0, Math.PI * 2);
-        this.ctx.fillStyle = '#fff';
-        this.ctx.fill();
-        this.ctx.shadowBlur = 0;
+        const now = new Date();
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        if (this.els.date) {
+            this.els.date.innerText = `${months[now.getMonth()]} ${now.getDate()}`;
+        }
     },
 
+    // --- PRO RENDERING LOGIC ---
+    drawComplexRing(cx, cy, radius, progress, thickness) {
+        const startAngle = -Math.PI / 2;
+        const endAngle = startAngle + (Math.PI * 2 * progress);
+        const hue = this.config.hue;
+
+        // 1. The "Track" (Dark groove background)
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        this.ctx.strokeStyle = '#111'; // Dark grey
+        this.ctx.lineWidth = thickness;
+        this.ctx.lineCap = 'round';
+        this.ctx.shadowBlur = 0;
+        this.ctx.stroke();
+
+        // 2. The "Glow" (Wide, transparent blur)
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, radius, startAngle, endAngle);
+        this.ctx.strokeStyle = `hsla(${hue}, 90%, 50%, 0.4)`;
+        this.ctx.lineWidth = thickness * 3; 
+        this.ctx.shadowBlur = thickness * 4; 
+        this.ctx.shadowColor = `hsla(${hue}, 90%, 50%, 0.8)`;
+        this.ctx.stroke();
+
+        // 3. The "Core" (Thin, hot white center)
+        this.ctx.shadowBlur = 0; // Reset shadow for crisp core
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, radius, startAngle, endAngle);
+        this.ctx.strokeStyle = `hsla(${hue}, 100%, 85%, 1)`; // Almost white
+        this.ctx.lineWidth = thickness;
+        this.ctx.stroke();
+
+        // 4. The "Knob" (Leading particle)
+        const px = cx + Math.cos(endAngle) * radius;
+        const py = cy + Math.sin(endAngle) * radius;
+
+        // Knob Halo
+        this.ctx.beginPath();
+        this.ctx.arc(px, py, thickness * 1.5, 0, Math.PI * 2);
+        this.ctx.fillStyle = `hsla(${hue}, 100%, 60%, 0.5)`;
+        this.ctx.shadowBlur = 15;
+        this.ctx.shadowColor = `hsla(${hue}, 100%, 50%, 1)`;
+        this.ctx.fill();
+
+        // Knob Core
+        this.ctx.beginPath();
+        this.ctx.arc(px, py, thickness * 0.8, 0, Math.PI * 2);
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.shadowBlur = 0;
+        this.ctx.fill();
+    },
+
+    // --- UTILITIES ---
     handleResize() {
         if (!this.els.canvas || !this.els.scaler) return;
 
-        // --- FIX: Use Actual Element Size ---
+        // Get actual size
         const rect = this.els.scaler.getBoundingClientRect();
         this.width = rect.width;
         this.height = rect.height;
 
-        // Calculate Clock Diameter
+        // Pass size to CSS for Font Scaling
         const minDim = Math.min(this.width, this.height);
+        document.documentElement.style.setProperty('--zen-size', `${minDim}px`);
 
-        // Update CSS Variable for Font Sizing
-        this.els.scaler.style.setProperty('--zen-size', `${minDim}px`);
-
+        // Handle High DPI (Retina) screens
         const dpr = window.devicePixelRatio || 1;
         this.els.canvas.width = this.width * dpr;
         this.els.canvas.height = this.height * dpr;
         this.ctx.scale(dpr, dpr);
     },
 
-    applyColor(hex) {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        if (result) {
-            let r = parseInt(result[1], 16) / 255;
-            let g = parseInt(result[2], 16) / 255;
-            let b = parseInt(result[3], 16) / 255;
-            const max = Math.max(r, g, b), min = Math.min(r, g, b);
-            let h, s, l = (max + min) / 2;
+    updateSettings(hue, zoom) {
+        // Handle Hue (Canvas needs it for drawing)
+        // If the palette passes a hex code, we might need conversion, 
+        // but for simplicity, I set the palette options to be raw Hue numbers (0-360)
+        // If your engine passes Hex, let me know and I'll add the converter back.
+        this.config.hue = parseInt(hue);
 
-            if (max === min) { h = s = 0; }
-            else {
-                const d = max - min;
-                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-                switch (max) {
-                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                    case g: h = (b - r) / d + 2; break;
-                    case b: h = (r - g) / d + 4; break;
-                }
-                h /= 6;
-            }
-            this.config.baseColor = { h: h * 360, s: s * 100, l: l * 100 };
-        }
-    },
-
-    applyZoom(val) {
+        // Handle Zoom (CSS Transform)
         if (this.els.scaler) {
-            this.els.scaler.style.transform = `scale(${val / 100})`;
+            this.els.scaler.style.transform = `scale(${zoom / 100})`;
         }
     },
 
     onSettingsChange(key, val) {
-        if (key === 'mood') this.applyColor(val);
-        if (key === 'zoom') this.applyZoom(val);
+        if (key === 'mood') this.config.hue = parseInt(val);
+        if (key === 'zoom') {
+            if (this.els.scaler) this.els.scaler.style.transform = `scale(${val / 100})`;
+        }
     },
 
     destroy() {
         if (this.animationId) cancelAnimationFrame(this.animationId);
         window.removeEventListener('resize', this.boundResize);
-        document.getElementById('theme-main-style')?.remove();
         this.els = {};
         this.ctx = null;
-    },
-
-    injectStyles(css) {
-        const style = document.createElement('style');
-        style.id = 'theme-main-style';
-        style.textContent = css;
-        document.head.appendChild(style);
-    },
-
-    cache(stage) {
-        this.els = {
-            canvas: stage.querySelector('#zen-canvas'),
-            scaler: stage.querySelector('#zen-scaler'),
-            time: stage.querySelector('.zen-time'),
-            date: stage.querySelector('.zen-date'),
-            label: stage.querySelector('.zen-label')
-        };
-        this.boundResize = this.handleResize.bind(this);
-    },
-
-    template() {
-        return `
-            <div id="zen-root">
-                <div id="zen-scaler">
-                    <canvas id="zen-canvas"></canvas>
-                    <div class="zen-overlay">
-                        <div class="zen-date">INITIALIZING</div>
-                        <div class="zen-time">--:--</div>
-                        <div class="zen-label">--</div>
-                    </div>
-                </div>
-            </div>
-        `;
     }
 };
