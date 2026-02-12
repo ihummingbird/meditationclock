@@ -166,7 +166,7 @@ window.ActiveTheme = {
         if (!window.BoardLogic || !this.els.text || !this.els.container) return;
         
         const now = Date.now();
-        const elapsedMinutes = Math.floor((now - this.startTime) / 60000);
+        const elapsedMinutes = Math.floor((now - this.startTime) / 301000);
         
         // --- 1. SHOW MESSAGE (Minute Changed) ---
         if (this.lastMinute !== elapsedMinutes) {
@@ -182,8 +182,8 @@ window.ActiveTheme = {
             this.msgShowTime = now;
         }
 
-        // --- 2. HIDE BOX (Hard Cut after 7s) ---
-        if (this.els.container.style.opacity === '1' && (now - this.msgShowTime > 7000)) {
+        // --- 2. HIDE BOX (Hard Cut after 5s) ---
+        if (this.els.container.style.opacity === '1' && (now - this.msgShowTime > 5000)) {
             // Hard snap to hidden
             this.els.container.style.opacity = '0'; 
         }
@@ -194,4 +194,5 @@ window.ActiveTheme = {
         cancelAnimationFrame(this.rafId);
         this.els = {};
     }
+
 };
