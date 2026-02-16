@@ -250,7 +250,7 @@ const Engine = {
         
         const label = document.createElement('div');
         label.className = 'toggle-label';
-        label.innerText = "Stopwatch Sync";
+        label.innerText = "Stopwatch Mode";
         toggleRow.appendChild(label);
 
         const switchLabel = document.createElement('label');
@@ -524,3 +524,4 @@ const Engine = {
 
 
 Engine.init();
+
