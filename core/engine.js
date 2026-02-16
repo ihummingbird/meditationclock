@@ -22,7 +22,7 @@ const Engine = {
         { id: 'celestial_chronos', name: 'Celestial' },
         { id: 'the_board', name: '☆ The Board' }
     ],
-    state: { activeThemeId: 'simple', themeSettings: {} },
+    state: { activeThemeId: 'simple', themeSettings: {}, stopwatchMode: false },
     session: { active: false, finished: false, startTime: null, elapsed: 0 },
     currentThemeObj: null,
 
@@ -231,9 +231,87 @@ const Engine = {
     buildSettingsUI: function (themeId) {
         const container = this.dom.settingsContent;
         container.innerHTML = '';
+
+        // --- 1. SYSTEM SECTION ---
+        const sysBox = document.createElement('div');
+        sysBox.className = 'system-section';
+
+        // Header
+        const sysHeader = document.createElement('div');
+        sysHeader.className = 'setting-label';
+        sysHeader.style.marginBottom = '15px';
+        sysHeader.style.color = 'var(--text-dim)';
+        sysHeader.innerText = "SYSTEM CONTROL";
+        sysBox.appendChild(sysHeader);
+
+        // Stopwatch Toggle Row
+        const toggleRow = document.createElement('div');
+        toggleRow.className = 'toggle-row';
+        
+        const label = document.createElement('div');
+        label.className = 'toggle-label';
+        label.innerText = "Stopwatch Sync";
+        toggleRow.appendChild(label);
+
+        const switchLabel = document.createElement('label');
+        switchLabel.className = 'switch';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = this.state.stopwatchMode;
+        
+        checkbox.onchange = (e) => {
+            this.state.stopwatchMode = e.target.checked;
+            this.saveState();
+            // Show/Hide warning based on state
+            warningBox.style.display = e.target.checked ? 'block' : 'none';
+            this.tick(); 
+        };
+
+        const slider = document.createElement('span');
+        slider.className = 'slider';
+
+        switchLabel.appendChild(checkbox);
+        switchLabel.appendChild(slider);
+        toggleRow.appendChild(switchLabel);
+        sysBox.appendChild(toggleRow);
+
+        // --- DISCLAIMER BOX ---
+        const warningBox = document.createElement('div');
+        warningBox.style.marginTop = '12px';
+        warningBox.style.padding = '10px';
+        warningBox.style.background = 'rgba(255, 59, 48, 0.1)'; // Red tint
+        warningBox.style.border = '1px solid rgba(255, 59, 48, 0.2)';
+        warningBox.style.borderRadius = '8px';
+        warningBox.style.fontSize = '11px';
+        warningBox.style.lineHeight = '1.4';
+        warningBox.style.color = '#ff6b6b';
+        warningBox.style.display = this.state.stopwatchMode ? 'block' : 'none'; // Only show if ON
+        warningBox.innerHTML = `
+            <strong>⚠ EXPERIMENTAL</strong><br>
+            Some themes may not animate correctly in this mode. Recommended setting is <strong>OFF</strong>.
+        `;
+        sysBox.appendChild(warningBox);
+
+        container.appendChild(sysBox);
+        // -----------------------------------------
+
+        // --- 2. THEME SETTINGS (Existing Logic) ---
         const config = this.currentThemeObj?.settingsConfig;
+        
+        // Header for Theme Settings
+        if (config) {
+            const themeHeader = document.createElement('div');
+            themeHeader.className = 'setting-label'; 
+            themeHeader.style.marginTop = '10px';
+            themeHeader.innerText = "VISUAL SETTINGS";
+            container.appendChild(themeHeader);
+        }
+
         if (!config) {
-            container.innerHTML = '<div style="opacity:0.3; font-size:10px; text-transform:uppercase;">No Configuration</div>';
+            const msg = document.createElement('div');
+            msg.innerHTML = '<div style="opacity:0.3; font-size:10px; margin-top:20px;">NO CONFIGURATION</div>';
+            container.appendChild(msg);
             return;
         }
 
@@ -242,6 +320,10 @@ const Engine = {
             wrapper.className = 'setting-item';
             const currentVal = this.state.themeSettings[themeId]?.[key] || setting.default;
 
+            // ... (Your existing Label/Slider/Palette/Select logic goes here) ...
+            // Just copy/paste the rest of the loop from the previous code
+            
+            // --- RE-INSERTING YOUR LOGIC FOR CONTEXT ---
             const labelRow = document.createElement('div');
             labelRow.className = 'setting-label';
             labelRow.innerHTML = `<span>${setting.label}</span> <span style="color:white">${currentVal}${setting.displaySuffix || ''}</span>`;
@@ -262,14 +344,8 @@ const Engine = {
                 setting.options.forEach(colorVal => {
                     const swatch = document.createElement('div');
                     swatch.className = `color-swatch ${colorVal === currentVal ? 'active' : ''}`;
-                    
-                    // FIX: Handle raw Hue numbers (like '220') by converting to HSL for display
-                    if (!isNaN(colorVal)) {
-                        swatch.style.backgroundColor = `hsl(${colorVal}, 70%, 60%)`;
-                    } else {
-                        swatch.style.backgroundColor = colorVal;
-                    }
-                    
+                    // Handle raw numbers or hex
+                    swatch.style.backgroundColor = !isNaN(colorVal) ? `hsl(${colorVal}, 70%, 60%)` : colorVal;
                     swatch.onclick = () => {
                         this.updateSetting(themeId, key, colorVal);
                         this.buildSettingsUI(themeId);
@@ -277,35 +353,21 @@ const Engine = {
                     grid.appendChild(swatch);
                 });
                 wrapper.appendChild(grid);
-
-                
             } else if (setting.type === 'select') {
-                const label = document.createElement('div');
-                
-
                 const select = document.createElement('select');
-                select.className = 'setting-select'; // We will style this class next
-
+                select.className = 'setting-select';
                 setting.options.forEach(opt => {
                     const option = document.createElement('option');
                     option.value = opt.value;
                     option.innerText = opt.text;
-                    
-                    const currentVal = this.state.themeSettings[themeId]?.[key] || setting.default;
-                    if (opt.value == currentVal) {
-                        option.selected = true;
-                    }
+                    if (opt.value == currentVal) option.selected = true;
                     select.appendChild(option);
                 });
-
-                select.onchange = (e) => {
-                    this.updateSetting(themeId, key, e.target.value);
-                };
+                select.onchange = (e) => this.updateSetting(themeId, key, e.target.value);
                 wrapper.appendChild(select);
             }
-            // ^^^^ --- END OF NEW BLOCK --- ^^^^
-
             container.appendChild(wrapper);
+            // -------------------------------------------
         }
     },
 
@@ -362,13 +424,43 @@ const Engine = {
     startClock: function () { setInterval(() => this.tick(), 1000); },
 
     tick: function () {
-        const now = new Date();
-        this.currentThemeObj?.update({
-            h: String(now.getHours()).padStart(2, '0'),
-            m: String(now.getMinutes()).padStart(2, '0'),
-            s: String(now.getSeconds()).padStart(2, '0')
-        });
-        if (this.session.active) this.dom.sessionTimer.innerText = this.formatTime(Date.now() - this.session.startTime);
+        let h, m, s;
+
+        // MODE 1: STOPWATCH MODE (And Session is Active)
+        if (this.state.stopwatchMode && this.session.active) {
+            const elapsed = Date.now() - this.session.startTime;
+            const totalSeconds = Math.floor(elapsed / 1000);
+            
+            h = Math.floor(totalSeconds / 3600);
+            m = Math.floor((totalSeconds % 3600) / 60);
+            s = totalSeconds % 60;
+        } 
+        // MODE 2: STOPWATCH MODE (But Session is Paused/Stopped)
+        else if (this.state.stopwatchMode && !this.session.active) {
+            h = 0; m = 0; s = 0;
+        }
+        // MODE 3: STANDARD CLOCK MODE
+        else {
+            const now = new Date();
+            h = now.getHours();
+            m = now.getMinutes();
+            s = now.getSeconds();
+        }
+
+        // Format strings (00, 01, etc.)
+        const timeObj = {
+            h: String(h).padStart(2, '0'),
+            m: String(m).padStart(2, '0'),
+            s: String(s).padStart(2, '0')
+        };
+
+        // Send to Theme
+        this.currentThemeObj?.update(timeObj);
+
+        // Always update the footer timer separately (logic remains same)
+        if (this.session.active) {
+            this.dom.sessionTimer.innerText = this.formatTime(Date.now() - this.session.startTime);
+        }
     },
 
     saveState: function () { localStorage.setItem('meditation_os_state', JSON.stringify(this.state)); },
