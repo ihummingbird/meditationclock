@@ -1,3 +1,4 @@
+
 class AstralTidesTheme {
     constructor() {
         this.timer = null;
@@ -10,6 +11,8 @@ class AstralTidesTheme {
         this.lastM = -1;
         this.lastH = -1;
     }
+
+    
 
     init(stage, settings) {
         this.root = stage;

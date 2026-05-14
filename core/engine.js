@@ -3,24 +3,65 @@ const Engine = {
 
     themes: [
         { id: 'simple', name: 'Simple Digital' },
-        { id: 'breathe', name: '☆ Deep Breathing' },
         { id: 'ios', name: '☆ Standby Mode' },
         { id: 'analog', name: '☆ Analog Standby' },
-        { id: 'lcd', name: 'Retro LCD' },
-        { id: 'industrial_digital_clock', name: 'Industrial Clock' },
+        
         { id: 'cyberpunk_digital', name: '☆ Cyberpunk' },
         { id: 'ethereal_tides', name: '☆ Ethereal Tides' },
         { id: 'astral_tides', name: '☆ Astral Tides' },
-        { id: 'mail', name: 'Nostalgia' },
-        { id: 'circular', name: '☆ Circular' },
-        { id: 'auroras_glass', name: '☆ Auroras Glass' },
         { id: 'zen_orbit', name: '☆ Zen Orbit' },
-        { id: 'machinarium', name: '☆ Machinarium' },
-        { id: 'solstice_prism', name: 'Solstice Prism' },
         { id: 'horizon_loom', name: 'Horizon Loom' },
         { id: 'chronos_gyre', name: 'Chronos Gyre' },
+        { id: 'the_board', name: '☆ The Board' },
+        { id: 'breathe', name: '☆ Deep Breathing' },
+
+
+
+        { id: 'circular', name: '☆ Circular' },
+        { id: 'circularReborn', name: 'Circular Reborn' },
+
+        { id: 'machina_core', name: '☆ Machina Core' },
+        
+
+        { id: 'lcd', name: 'Retro LCD' },
+        { id: 'vision_glass', name: 'Vision Glass' },
+        { id: 'machinarium', name: '☆ Machinarium' },
+        { id: 'auroras_glass', name: '☆ Auroras Glass' },
+        { id: 'auroras_glass_reborn', name: '☆ Auroras Glass Reborn' },
+
+
+        { id: 'industrial_digital_clock', name: 'Industrial Clock' },
+
+        { id: 'vision_os', name: 'Vision OS' },
+        { id: 'vision_os_reborn', name: 'Vision OS Reborn' },
+
+
+        { id: 'spatial_aura', name: 'Spatial Aura' },
+        { id: 'spatial_aura_reborn', name: 'Spatial Aura Reborn' },
+
+
+        { id: 'harmonic_orbits', name: 'Harmonic Orbits' },
+        { id: 'something_google_would_create', name: 'Material Theme' },
+        { id: 'fluent', name: 'Fluent' },
+        { id: 'astral_geometry', name: 'Astral Geometry' },
+        { id: 'etherial_bloom', name: 'Etherial Bloom' },
+
+        //{ id: 'seven_segment_2', name: 'Digital Display' },  --deprecated
+        { id: 'luminous_orbit', name: '☆ Luminous Orbit' },
+        { id: 'moonwater', name: 'Moonwater' },
+        { id: 'lumen_bloom', name: '☆ Lumen Bloom' },
+
+        { id: 'circlulartry', name: '☆ Circlular Try' },
+        { id: 'zenenso', name: 'Zen Enso' },
+        { id: 'breatheReborn', name: '☆ Deep Breathing Reborn' },
+
+
+        { id: 'solstice_prism', name: 'Solstice Prism' },
         { id: 'celestial_chronos', name: 'Celestial' },
-        { id: 'the_board', name: '☆ The Board' }
+        { id: 'mail', name: 'Mail' }
+        
+        
+        
     ],
     state: { activeThemeId: 'simple', themeSettings: {}, stopwatchMode: false },
     session: { active: false, finished: false, startTime: null, elapsed: 0 },
@@ -53,6 +94,10 @@ const Engine = {
         this.initListeners();
         this.buildLibraryUI();
         this.loadTheme(this.state.activeThemeId);
+
+        // NEW LINE: Restore the session UI and memory before the clock starts ticking
+        this.restoreSession(); 
+
         this.startClock();
         
         const savedUser = localStorage.getItem('meditation_user');
@@ -85,6 +130,47 @@ const Engine = {
         this.dom.sessionBtn.onclick = () => this.handleSessionClick();
         this.dom.syncBtn.onclick = () => this.uploadSession();
     },
+
+        restoreSession: function () {
+        const savedData = localStorage.getItem('meditation_session');
+        if (!savedData) return; // Nothing saved, do nothing
+
+        try {
+            const data = JSON.parse(savedData);
+            const s = this.session;
+
+            if (data.active && data.startTime) {
+                // Restore Running State
+                s.active = true;
+                s.startTime = data.startTime;
+
+                // Force UI to "Start" mode
+                this.dom.sessionBtn.innerText = "STOP SESSION";
+                this.dom.sessionBtn.classList.add('stop-mode');
+                this.dom.sessionHandle.classList.add('meditating');
+                this.dom.sessionText.innerText = "IN PROGRESS";
+                this.dom.controlsRow.classList.remove('sync-layout'); 
+                this.dom.sessionTimer.classList.remove('finished');
+            } 
+            else if (data.finished && data.elapsed) {
+                // Restore Finished/Sync State
+                s.finished = true;
+                s.elapsed = data.elapsed;
+
+                // Force UI to "Finished" mode
+                this.dom.sessionBtn.innerText = "NEW SESSION";
+                this.dom.sessionBtn.classList.remove('stop-mode');
+                this.dom.sessionText.innerText = "SESSION FINISHED";
+                this.dom.sessionTimer.classList.add('finished');
+                this.dom.controlsRow.classList.add('sync-layout'); 
+                this.dom.sessionTimer.innerText = this.formatTime(s.elapsed);
+            }
+        } catch (e) {
+            // If data gets corrupted somehow, clear it
+            localStorage.removeItem('meditation_session');
+        }
+    },
+
 
     // FIX: Add this function to handle the class removal
     handleFullscreenChange: function () {
@@ -137,11 +223,14 @@ const Engine = {
         setTimeout(this.updateScrollIndicator, 200);
     },
 
-    handleSessionClick: function () {
+        handleSessionClick: function () {
         const s = this.session;
         if (!s.active && !s.finished) {
             // --- 1. START SESSION ---
             s.active = true; s.startTime = Date.now();
+            
+            // NEW: Save "Active" state
+            localStorage.setItem('meditation_session', JSON.stringify({ active: true, startTime: s.startTime }));
             
             // UI Updates
             this.dom.sessionBtn.innerText = "STOP SESSION";
@@ -149,7 +238,6 @@ const Engine = {
             this.dom.sessionHandle.classList.add('meditating');
             this.dom.sessionText.innerText = "IN PROGRESS";
             
-            // RESET LAYOUT: Ensure we are in "Big Button" mode
             this.dom.controlsRow.classList.remove('sync-layout'); 
             this.dom.sessionTimer.classList.remove('finished');
             
@@ -162,6 +250,9 @@ const Engine = {
             s.active = false; s.finished = true;
             s.elapsed = Date.now() - s.startTime;
             
+            // NEW: Save "Finished" state
+            localStorage.setItem('meditation_session', JSON.stringify({ finished: true, elapsed: s.elapsed }));
+            
             // UI Updates
             this.dom.sessionBtn.innerText = "NEW SESSION";
             this.dom.sessionBtn.classList.remove('stop-mode');
@@ -169,7 +260,6 @@ const Engine = {
             this.dom.sessionText.innerText = "SESSION FINISHED";
             this.dom.sessionTimer.classList.add('finished');
             
-            // TRIGGER MORPH: Shrink button, reveal inputs
             this.dom.controlsRow.classList.add('sync-layout'); 
             return;
         }
@@ -178,17 +268,20 @@ const Engine = {
             // --- 3. RESET ---
             s.finished = false; s.elapsed = 0; s.startTime = null;
             
+            // NEW: Clear memory
+            localStorage.removeItem('meditation_session');
+            
             // UI Updates
             this.dom.sessionBtn.innerText = "BEGIN MEDITATION";
             this.dom.sessionTimer.innerText = "00:00:00";
             this.dom.sessionTimer.classList.remove('finished');
             this.dom.sessionText.innerText = "START SESSION";
             
-            // REVERT MORPH: Hide inputs, big button
             this.dom.controlsRow.classList.remove('sync-layout');
             return;
         }
     },
+
 
     uploadSession: function () {
         const user = this.dom.userInput.value.trim() || 'ANONYMOUS';
@@ -250,7 +343,7 @@ const Engine = {
         
         const label = document.createElement('div');
         label.className = 'toggle-label';
-        label.innerText = "Stopwatch Mode";
+        label.innerText = "Stopwatch Sync";
         toggleRow.appendChild(label);
 
         const switchLabel = document.createElement('label');
@@ -408,13 +501,23 @@ const Engine = {
         this.dom.settingsDrawer.classList.remove('active');
     },
 
+    // IMPORTANT NOTE, DO NOT DELETE THIS NOTE, THE REASON FOR TWO SET OF FUNCTIONS IN FULLSCREEN 
+    // AND EXIT FULL SCREEN FUNCTION IS TO MAKE SURE IT WORKS BOTH ON MOBILE AND DESKTOP, 
+    // IT DIDN'T BEFORE I HAD TO DO THIS, THE MINOR ERROR IT CAUSES IS OK DO NOT TOUCH THIS FUNCTION
     enterFullscreen: function () {
         if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
         document.body.classList.add('fullscreen-mode');
         this.closeDrawers();
+        // Just apply the CSS, no browser API call
+        document.body.classList.add('fullscreen-mode');
+        this.closeDrawers();
     },
 
-    exitFullscreen: function () { if (document.exitFullscreen) document.exitFullscreen(); },
+    exitFullscreen: function () { 
+        // Just remove the CSS, no browser API call
+        if (document.exitFullscreen) document.exitFullscreen();
+        document.body.classList.remove('fullscreen-mode'); 
+    },
 
     formatTime: function (ms) {
         const s = Math.floor(ms / 1000);
@@ -524,4 +627,3 @@ const Engine = {
 
 
 Engine.init();
-

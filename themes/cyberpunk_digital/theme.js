@@ -22,7 +22,9 @@ window.ActiveTheme = {
         this.destroy();
 
         // 1. Load Font
+        this.injectLink('../fonts/audiowide-latin-400-normal.woff');
         this.injectLink('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+
 
         // 2. Inject CSS (Combining New Structure + Aurora Visuals + Big Sizes)
         this.injectStyles(`

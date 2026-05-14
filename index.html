@@ -6,9 +6,18 @@
     <title>Meditation Clock</title>
     <link rel="stylesheet" href="core/global.css">
     <link id="theme-stylesheet" rel="stylesheet" href="">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&family=Audiowide&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&family=Audiowide&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Cinzel:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    
+    <!-- Backup for international internet blackouts -->
+    <script src="
+                                    https://lib.arvancloud.ir/webfont/1.6.28/webfontloader.js
+                                " crossorigin="anonymous" referrerpolicy="no-referrer" onload="this.media='all'""></script>
     <!-- FavIcon -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preload" href="fonts/JetBrainsMono-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous" onload="this.media='all'"">
 </head>
 <body>
 

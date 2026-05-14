@@ -7,6 +7,7 @@ window.ActiveTheme = {
         shell: null
     },
     rafId: null,
+    currentSettings: {}, // <--- NEW: Memory state for the theme
 
     settingsConfig: {
         scale: {
@@ -87,7 +88,9 @@ window.ActiveTheme = {
             shell: document.getElementById('z-shell')
         };
 
-        this.applySettings(settings);
+        this.currentSettings = settings || {}; 
+        this.applySettings();
+
         this.loop();
     },
 
@@ -118,24 +121,25 @@ window.ActiveTheme = {
         this.els.date.textContent = dateStr;
     },
 
-    applySettings(settings) {
+        applySettings() { // <-- Remove argument here
+        const s = this.currentSettings; 
         const r = document.documentElement;
         
         // Size
-        r.style.setProperty('--zo-scale', (settings.scale || 100) / 100);
+        r.style.setProperty('--zo-scale', (s.scale || 100) / 100);
         
         // Mode
-        if(this.els.shell) this.els.shell.dataset.mode = settings.layout || 'full';
+        if(this.els.shell) this.els.shell.dataset.mode = s.layout || 'full';
 
         // Palette Logic (Gradients)
         const palettes = {
-            'california': ['#FF2D55', '#5856D6', '#007AFF'], // Pink, Purple, Blue
-            'aurora':     ['#30DB5B', '#00D1FF', '#0A84FF'], // Green, Cyan, Blue
-            'midnight':   ['#BF5AF2', '#5E5CE6', '#0A84FF'], // Purple, Indigo, Blue
-            'volcano':    ['#FF9500', '#FF3B30', '#FF2D55']  // Orange, Red, Pink
+            'california': ['#FF2D55', '#5856D6', '#007AFF'], 
+            'aurora':     ['#30DB5B', '#00D1FF', '#0A84FF'], 
+            'midnight':   ['#BF5AF2', '#5E5CE6', '#0A84FF'], 
+            'volcano':    ['#FF9500', '#FF3B30', '#FF2D55']  
         };
 
-        const colors = palettes[settings.palette] || palettes['california'];
+        const colors = palettes[s.palette] || palettes['california'];
         
         // Apply to CSS Variables for the Gradient Mesh
         r.style.setProperty('--zo-p1', colors[0]);
@@ -143,12 +147,12 @@ window.ActiveTheme = {
         r.style.setProperty('--zo-p3', colors[2]);
     },
 
+
     onSettingsChange(key, val) {
-        // Reuse apply logic by creating a partial settings object
-        const s = {};
-        s[key] = val;
-        this.applySettings(s);
+    this.currentSettings[key] = val;
+    this.applySettings(); // <-- Remove 's' from inside the parenthesis
     },
+
 
     destroy() {
         cancelAnimationFrame(this.rafId);
