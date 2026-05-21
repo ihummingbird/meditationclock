@@ -540,9 +540,11 @@ input:checked + .slider:before {
     
     /* Keep original shape, just scale it down and keep it at the bottom */
     .session-handle {
-        bottom: 8px !important;
+        position: fixed !important; /* or absolute, depending on your container */
+        left: 50% !important;
+        bottom: 2px !important; /* Reduced from 8px to keep it flush with the bottom */
         transform: translateX(-50%) scale(0.66) !important;
-        transform-origin: bottom center;
+        transform-origin: bottom center !important;
     }
     
     /* Ensure the main clock text shrinks to fit the small window seamlessly */
