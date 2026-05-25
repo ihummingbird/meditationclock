@@ -533,7 +533,7 @@ input:checked + .slider:before {
 
 /* Triggers when the window is shaped like a small PiP box */
 /* --- PiP / EXTREMELY SMALL SCREEN OVERRIDES --- */
-@media (max-height: 320px), (max-width: 480px) {
+@media (max-height: 320px), (max-width: 320px) {
     #navbar, .drawer, .bottom-drawer, #btn-exit-fs { 
         display: none !important; 
     }
@@ -553,3 +553,9 @@ input:checked + .slider:before {
     }
 }
 
+/* --- Hides the PIP button if a phone --- */
+@media (max-height: 450px), (max-width: 450px) {
+    #btn-pip {
+        display: none !important;
+    } 
+}
