@@ -22,6 +22,7 @@ const Engine = {
         { id: 'vision_os_reborn', name: '☆ Vision OS Reborn' },
         { id: 'spatial_aura_reborn', name: '☆ Spatial Aura Reborn' },
         { id: 'vision_os', name: '☆ Vision OS' },
+        
 
 
         
@@ -29,7 +30,7 @@ const Engine = {
         { id: 'machinarium', name: '☆ Machinarium' },
         { id: 'zenenso', name: '☆ Zen Enso' },
         { id: 'lumen_bloom', name: '☆ Lumen Bloom' },
-        
+        { id: 'etherial_bloom', name: 'Etherial Bloom' },
 
         { id: 'lcd', name: 'Retro LCD' },
         { id: 'vision_glass', name: 'Vision Glass' },
@@ -53,13 +54,20 @@ const Engine = {
         { id: 'something_google_would_create', name: 'Material Theme' },
         
         { id: 'astral_geometry', name: 'Astral Geometry' },
-        { id: 'etherial_bloom', name: 'Etherial Bloom' },
+        
         
         
         
 
         //{ id: 'seven_segment_2', name: 'Digital Display' },  --deprecated
-        
+        { id: 'astral_mandala', name: 'Astral Mandala' },
+        { id: 'aether_dial', name: 'Aether Dial' },
+        { id: 'celestial_vault', name: 'Celestial Vault' },
+        { id: 'titan_mechanism', name: 'Titan Mechanism' },
+        { id: 'analogigity', name: 'Machina Astra' },
+        { id: 'analog_chronograph', name: 'Analog Chronograph' },
+
+
         
         
 

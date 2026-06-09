@@ -16,7 +16,7 @@
     animation: face-flicker 4s infinite steps(1);
 
     /* Scale to the navbar height, slightly smaller (80%) for breathing room */
-    height: 95% !important; 
+    height: 85% !important; 
     width: auto !important; /* Let aspect-ratio calculate the width automatically */
     aspect-ratio: 16 / 9 !important; /* Enforce the Herman 16:9 orientation */
 
