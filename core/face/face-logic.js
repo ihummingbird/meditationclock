@@ -30,6 +30,8 @@ class DigitalFace {
         this.gx = 0; this.gy = 0; // kept for drawers; never translated
 
         this.booting = true; this.bootStart = 0;
+        this.asleep = false; this.sleepIdle = 30000;
+
         this.mouse = { x: null, y: null }; this.lastMove = 0;
         this.tilt = { x: 0, y: 0, active: false };
 
@@ -40,7 +42,7 @@ class DigitalFace {
     init() {
         if (!this.navBrand) return;
         this.originalTitle = this.navBrand.innerHTML;
-        this.faceMode = localStorage.getItem('hermanFaceMode') || 'face';
+        this.faceMode = localStorage.getItem('hermanFaceMode') || 'title'; // changed 'face' -> 'title'
 
         if (this.faceMode === 'title') this.enableTitleToggle();
         else this.startIdleTimer();
@@ -56,6 +58,8 @@ class DigitalFace {
                 this.startIdleTimer();
             });
         });
+
+        this.injectFaceToggle();
     }
 
 
@@ -94,9 +98,15 @@ class DigitalFace {
         this.ctx = ctx; this.canvas = cv;
         this.navBrand.appendChild(cv);
 
-        cv.addEventListener('mouseenter', () => this.setExpression('happy', 2000));
-        cv.addEventListener('mouseleave', () => this.setExpression('neutral', 1));
-                cv.addEventListener('click', () => this.restoreTitle());
+        cv.addEventListener('mouseenter', () => {
+         if (!this.asleep && performance.now() - (this.justWoke || 0) > 1500)
+            this.setExpression('happy', 2000);
+        });
+        cv.addEventListener('mouseleave', () => {
+            if (!this.asleep && performance.now() - (this.justWoke || 0) > 1500)
+                this.setExpression('neutral', 1);
+        });
+        cv.addEventListener('click', () => this.restoreTitle());
         cv.setAttribute('title', 'Click to switch back to the title');
         cv.style.cursor = 'pointer';
         cv.addEventListener('touchstart', () => {
@@ -140,6 +150,7 @@ class DigitalFace {
             this.navBrand.style.opacity = '1';
             this.enableTitleToggle();
         }, 300);
+        this.syncFaceToggle();
     }
 
     enableTitleToggle() {
@@ -160,7 +171,68 @@ class DigitalFace {
         this.navBrand.removeAttribute('title');
         this.navBrand.style.cursor = '';
         this.showFace();
+        this.syncFaceToggle();   // <-- Updates the toggle
     }
+
+
+    // --- A toggle for the face ---
+    injectFaceToggle() {
+        const inject = () => {
+            const container = document.getElementById('settings-content');
+            if (!container) return;
+            if (container.querySelector('#face-toggle-row')) return;
+
+            const sysBox = container.querySelector('.system-section') || container;
+
+            const toggleRow = document.createElement('div');
+            toggleRow.className = 'toggle-row';
+            toggleRow.id = 'face-toggle-row';
+
+            const label = document.createElement('div');
+            label.className = 'toggle-label';
+            label.innerText = 'Digital Face';
+            toggleRow.appendChild(label);
+
+            const switchLabel = document.createElement('label');
+            switchLabel.className = 'switch';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = (this.faceMode === 'face');
+
+            checkbox.onchange = (e) => {
+                if (e.target.checked) this.switchToFace();
+                else this.restoreTitle();
+            };
+
+            const slider = document.createElement('span');
+            slider.className = 'slider';
+
+            switchLabel.appendChild(checkbox);
+            switchLabel.appendChild(slider);
+            toggleRow.appendChild(switchLabel);
+            sysBox.appendChild(toggleRow);
+        };
+
+        inject();
+
+        if (typeof Engine !== 'undefined' && !Engine._faceHooked && Engine.buildSettingsUI) {
+            Engine._faceHooked = true;
+            const orig = Engine.buildSettingsUI.bind(Engine);
+            Engine.buildSettingsUI = (themeId) => {
+                orig(themeId);
+                inject();
+            };
+        }
+    }
+
+    // --- Update the toggle when title is clicked ---
+    syncFaceToggle() {
+        const cb = document.querySelector('#face-toggle-row input[type="checkbox"]');
+        if (cb) cb.checked = (this.faceMode === 'face');
+    }
+
+
 
 
 
@@ -210,9 +282,26 @@ class DigitalFace {
         }
 
         if (this.expression !== 'neutral' && now > this.exprUntil) this.expression = 'neutral';
-        if (!this.booting) this.behaviors.update(this, now);
+
+        // ---- idle -> sleep ----
+        if (!this.booting) {
+            const idleMs = now - (this.lastMove || this.bootStart);
+            if (!this.asleep && idleMs > this.sleepIdle) {
+                this.asleep = true;
+                this.setExpression('sleep', 999999);
+            } else if (this.asleep && this.lastMove && idleMs < 400) {
+                this.asleep = false;
+                this.justWoke = now;
+                this.setExpression('surprised', 600);
+                setTimeout(() => { if (!this.asleep) this.setExpression('happy', 800); }, 600);
+            }
+
+        }
+
+        if (!this.booting && !this.asleep) this.behaviors.update(this, now);
 
         this.buildFrame(now);
+
     }
 
     enableTilt() {

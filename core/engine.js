@@ -66,6 +66,10 @@ const Engine = {
         { id: 'titan_mechanism', name: 'Titan Mechanism' },
         { id: 'analogigity', name: 'Machina Astra' },
         { id: 'analog_chronograph', name: 'Analog Chronograph' },
+        { id: 'aurora_drift', name: 'Aurora Drift' },
+        { id: 'particle_constellation', name: '✦ Particle Constellation' },
+        { id: 'orrery', name: 'Orrery' },
+        { id: 'tesseract', name: 'Tesseract' },
 
 
         
@@ -458,6 +462,7 @@ const Engine = {
         // --- DISCLAIMER BOX ---
         const warningBox = document.createElement('div');
         warningBox.style.marginTop = '12px';
+        warningBox.style.marginBottom = '12px';
         warningBox.style.padding = '10px';
         warningBox.style.background = 'rgba(255, 59, 48, 0.1)'; // Red tint
         warningBox.style.border = '1px solid rgba(255, 59, 48, 0.2)';
@@ -468,7 +473,7 @@ const Engine = {
         warningBox.style.display = this.state.stopwatchMode ? 'block' : 'none'; // Only show if ON
         warningBox.innerHTML = `
             <strong>⚠ EXPERIMENTAL</strong><br>
-            Some themes may not animate correctly in this mode. Recommended setting is <strong>OFF</strong>.
+            Some themes may not animate correctly in stopwatch mode. Recommended setting is <strong>OFF</strong>.
         `;
         sysBox.appendChild(warningBox);
 
