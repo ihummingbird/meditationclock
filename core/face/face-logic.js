@@ -1,11 +1,14 @@
 // face-logic.js
 
+
+
 class DigitalFace {
     constructor() {
         this.navBrand = document.querySelector('.nav-brand');
         this.idleTime = 10000;
         this.idleTimer = null;
         this.faceActive = false;
+        this.displayMode = 'face'; // 'face', 'shutting_down', 'text', 'booting'
 
         this.COLS = 28; this.ROWS = 14; this.cellPx = 9;
         this.color = '#37e6ff';
@@ -39,7 +42,7 @@ class DigitalFace {
         this.init();
     }
 
-    init() {
+        init() {
         if (!this.navBrand) return;
         this.originalTitle = this.navBrand.innerHTML;
         this.faceMode = localStorage.getItem('hermanFaceMode') || 'title'; // changed 'face' -> 'title'
@@ -60,7 +63,14 @@ class DigitalFace {
         });
 
         this.injectFaceToggle();
+
+        // --- GLOBAL BUTTON DETECTION ---
+        // NOTE: Navbar button reactions are handled by face-interactions.js
+        // which provides richer, personality-based responses with username
+        // substitution. Do NOT add triggerOverride calls here — they would
+        // race with the interactions layer and prevent %U replacement.
     }
+    
 
 
     startIdleTimer() {
@@ -68,7 +78,7 @@ class DigitalFace {
         this.idleTimer = setTimeout(() => this.showFace(), this.idleTime);
     }
 
-    showFace() {
+        showFace() {
         this.faceActive = true;
         this.navBrand.style.opacity = '0';
         setTimeout(() => {
@@ -80,6 +90,15 @@ class DigitalFace {
             this.booting = true;
             this.running = true;
             requestAnimationFrame((t) => this.loop(t));
+            
+            // --- NEW: Schedule greeting 10 seconds after boot ---
+            clearTimeout(this._greetTimer);
+            this._greetTimer = setTimeout(() => {
+                // Only greet if the user hasn't clicked away or triggered another override
+                if (this.faceActive && this.displayMode === 'face') {
+                    this.greetUser();
+                }
+            }, 10000); 
         }, 300);
     }
 
@@ -123,6 +142,58 @@ class DigitalFace {
         this.exprUntil = this.exprStart + (dur || 1800);
     }
     say(dur) { this.talkUntil = performance.now() + (dur || 2000); }
+     
+    
+    // --- Robot Override Sequence ---
+    triggerOverride(text) {
+        if (this.displayMode !== 'face') return; // Don't interrupt an ongoing sequence
+        
+        clearTimeout(this._greetTimer); // 
+        
+        this.displayMode = 'shutting_down';
+        this.shutDownStart = performance.now();
+        this.overrideText = text.toUpperCase();
+        this.textOffset = this.COLS; // Start text off-screen right
+    }
+
+    // --- Time-based Greeting ---
+    greetUser() {
+        const user = (localStorage.getItem('meditation_user') || 'Traveler').toUpperCase();
+        const hour = new Date().getHours();
+        
+        let timeOfDay = 'night';
+        if (hour >= 5 && hour < 12) timeOfDay = 'morning';
+        else if (hour >= 12 && hour < 18) timeOfDay = 'afternoon';
+        else if (hour >= 18 && hour < 22) timeOfDay = 'evening';
+
+        const presets = GREETINGS[timeOfDay];
+        const randomMsg = presets[Math.floor(Math.random() * presets.length)];
+        
+        // Replace %U with the actual username
+        const finalMsg = randomMsg.replace('%U', user);
+        this.triggerOverride(finalMsg);
+    }
+
+    drawPixelText(text, offset) {
+        const yStart = Math.floor(this.ROWS / 2) - 2; // Center vertically
+        let x = Math.floor(offset);
+        
+        for (let i = 0; i < text.length; i++) {
+            const charData = PIXEL_FONT[text[i]];
+            if (!charData) { x += 4; continue; }
+            
+            for (let row = 0; row < 5; row++) {
+                const bits = charData[row];
+                for (let col = 0; col < 3; col++) {
+                    if (bits & (1 << (2 - col))) {
+                        this.setPx(x + col, yStart + row, 0.9);
+                    }
+                }
+            }
+            x += 4; // Move to next letter (3px + 1px space)
+        }
+    }
+
     doubleBlink(now) { this.triggerBlink(now); this.blinkQueue = 1; }
     triggerBlink(now) { this.blinking = true; this.blinkStart = now; }
 
@@ -154,7 +225,7 @@ class DigitalFace {
     }
 
     enableTitleToggle() {
-        this.navBrand.setAttribute('title', 'Click to wake the face 🙂');
+        this.navBrand.setAttribute('title', 'Click to wake Herman 🙂');
         this.navBrand.style.cursor = 'pointer';
         if (this._titleClick) this.navBrand.removeEventListener('click', this._titleClick);
         this._titleClick = () => this.switchToFace();
@@ -190,7 +261,7 @@ class DigitalFace {
 
             const label = document.createElement('div');
             label.className = 'toggle-label';
-            label.innerText = 'Digital Face';
+            label.innerText = 'Herman';
             toggleRow.appendChild(label);
 
             const switchLabel = document.createElement('label');
@@ -237,6 +308,12 @@ class DigitalFace {
 
 
     update(now) {
+        // --- NEW: Pause background logic during text/override sequences ---
+        if (this.displayMode !== 'face') {
+            this.buildFrame(now); // Keep drawing the text/glitch
+            return;               // Skip gaze, blink, and sleep logic
+        }
+        
         // calm glow breathing (does NOT move pixels)
         this.pulse = 0.9 + 0.1 * Math.sin(now * 0.0016);
 
@@ -321,8 +398,57 @@ class DigitalFace {
         } else addEventListener('deviceorientation', h);
     }
 
-    buildFrame(now) {
+        buildFrame(now) {
         this.buf.fill(0);
+
+        // --- STATE MACHINE ---
+        if (this.displayMode === 'shutting_down') {
+            const p = (now - this.shutDownStart) / 300; // 300ms fast glitch shutdown
+            if (p >= 1) {
+                this.displayMode = 'text';
+                this.textStart = now;
+            } else {
+                // Random pixel glitch as it powers off
+                for (let y = 0; y < this.ROWS; y++) {
+                    for (let x = 0; x < this.COLS; x++) {
+                        if (Math.random() > p) this.buf[y * this.COLS + x] = Math.random() * 0.8;
+                    }
+                }
+                return;
+            }
+        }
+
+        if (this.displayMode === 'text') {
+            const textWidth = this.overrideText.length * 4;
+            // Scroll until the whole text has passed the left edge
+            if (this.textOffset < -textWidth) {
+                this.displayMode = 'booting';
+                this.booting = true;
+                this.bootStart = now;
+                return;
+            }
+            this.drawPixelText(this.overrideText, this.textOffset);
+            this.textOffset -= 0.25; // Scroll speed
+            return;
+        }
+
+        if (this.displayMode === 'booting') {
+            const p = (now - this.bootStart) / 800; // 800ms boot up
+            if (p >= 1) {
+                this.displayMode = 'face';
+                this.booting = false;
+                this.blink = 1;
+            } else {
+                const col = Math.floor(p * this.COLS);
+                for (let y = 0; y < this.ROWS; y++)
+                    for (let x = 0; x <= col; x++)
+                        this.buf[y * this.COLS + x] =
+                            x > col - 2 ? 1 : (Math.random() < 0.5 ? 0.22 : 0.07);
+                return;
+            }
+        }
+
+        // --- NORMAL FACE LOGIC ---
         if (this.booting) {
             const p = (now - this.bootStart) / 800;
             if (p >= 1) { this.booting = false; this.blink = 1; }

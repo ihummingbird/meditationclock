@@ -76,6 +76,7 @@ const Engine = {
         { id: 'light_weave', name: '✦ Light Weave' },
         { id: 'void_cathedral', name: '✦ Void Cathedral' },
         { id: 'data_stream', name: '✦ Data Stream' },
+        { id: 'nebula', name: 'Nebula' },
 
 
         
