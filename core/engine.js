@@ -70,6 +70,12 @@ const Engine = {
         { id: 'particle_constellation', name: '✦ Particle Constellation' },
         { id: 'orrery', name: 'Orrery' },
         { id: 'tesseract', name: 'Tesseract' },
+        { id: 'prismatic_lotus', name: '✦ Prismatic Lotus' },
+        { id: 'plasma_ring', name: '✦ Plasma Ring' },
+        { id: 'crystal_chrono', name: '✦ Crystal Chrono' },
+        { id: 'light_weave', name: '✦ Light Weave' },
+        { id: 'void_cathedral', name: '✦ Void Cathedral' },
+        { id: 'data_stream', name: '✦ Data Stream' },
 
 
         
