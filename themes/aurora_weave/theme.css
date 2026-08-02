@@ -1,0 +1,266 @@
+.aw-stage {
+    --aw-a1: hsl(175, 85%, 62%);
+    --aw-a2: hsl(230, 85%, 58%);
+    --aw-a3: hsl(285, 80%, 55%);
+    --aw-glow: hsl(175, 90%, 72%);
+    --aw-speed: 1;
+    --aw-glow-i: 0.6;
+
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(180deg, #02030c 0%, #050a1e 45%, #0a1230 75%, #0c1636 100%);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* --- Sky layer --- */
+.aw-sky {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+}
+
+/* --- Twinkling stars --- */
+.aw-stars {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.aw-star {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+    animation: awTwinkle var(--aw-d, 4s) ease-in-out infinite;
+    animation-delay: var(--aw-delay, 0s);
+}
+
+@keyframes awTwinkle {
+    0%, 100% { opacity: 0; transform: scale(0.6); }
+    50% { opacity: 0.9; transform: scale(1.15); }
+}
+
+/* --- Aurora ribbons --- */
+.aw-aurora {
+    position: absolute;
+    top: -10%;
+    border-radius: 50%;
+    filter: blur(46px);
+    mix-blend-mode: screen;
+    opacity: calc(0.55 * var(--aw-glow-i));
+    pointer-events: none;
+}
+
+.aw-aurora-1 {
+    left: -15%;
+    width: 55vw;
+    height: 85vh;
+    background: linear-gradient(180deg, transparent 0%, var(--aw-a1) 35%, transparent 80%);
+    transform: rotate(18deg);
+    animation: awDrift1 calc(26s / var(--aw-speed)) ease-in-out infinite;
+}
+
+.aw-aurora-2 {
+    left: 20%;
+    width: 60vw;
+    height: 95vh;
+    background: linear-gradient(180deg, transparent 0%, var(--aw-a2) 40%, transparent 85%);
+    transform: rotate(-14deg);
+    opacity: calc(0.5 * var(--aw-glow-i));
+    animation: awDrift2 calc(32s / var(--aw-speed)) ease-in-out infinite;
+}
+
+.aw-aurora-3 {
+    right: -18%;
+    width: 55vw;
+    height: 80vh;
+    background: linear-gradient(180deg, transparent 0%, var(--aw-a3) 38%, transparent 82%);
+    transform: rotate(24deg);
+    opacity: calc(0.45 * var(--aw-glow-i));
+    animation: awDrift3 calc(38s / var(--aw-speed)) ease-in-out infinite;
+}
+
+.aw-aurora-4 {
+    left: 38%;
+    width: 40vw;
+    height: 70vh;
+    background: linear-gradient(180deg, transparent 0%, var(--aw-glow) 45%, transparent 90%);
+    transform: rotate(-8deg);
+    opacity: calc(0.3 * var(--aw-glow-i));
+    animation: awDrift4 calc(22s / var(--aw-speed)) ease-in-out infinite;
+}
+
+@keyframes awDrift1 {
+    0%, 100% { transform: translate(0, 0) rotate(18deg) scale(1); }
+    50% { transform: translate(9vw, 5vh) rotate(14deg) scale(1.12); }
+}
+
+@keyframes awDrift2 {
+    0%, 100% { transform: translate(0, 0) rotate(-14deg) scale(1); }
+    50% { transform: translate(-10vw, 7vh) rotate(-18deg) scale(1.15); }
+}
+
+@keyframes awDrift3 {
+    0%, 100% { transform: translate(0, 0) rotate(24deg) scale(1); }
+    50% { transform: translate(-8vw, -6vh) rotate(20deg) scale(1.1); }
+}
+
+@keyframes awDrift4 {
+    0%, 100% { transform: translate(0, 0) rotate(-8deg) scale(1); }
+    50% { transform: translate(6vw, -8vh) rotate(-12deg) scale(1.2); }
+}
+
+/* --- Dark mountain silhouette --- */
+.aw-landscape {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 26vh;
+    pointer-events: none;
+}
+
+.aw-mountain {
+    position: absolute;
+    bottom: 0;
+    background: linear-gradient(180deg, #05070f 0%, #020308 100%);
+    clip-path: polygon(0 100%, 0 55%, 22% 30%, 38% 48%, 55% 18%, 72% 44%, 88% 28%, 100% 52%, 100% 100%);
+}
+
+.aw-mountain-1 { left: -5%; width: 55%; height: 100%; opacity: 0.9; }
+.aw-mountain-2 { left: 25%; width: 60%; height: 72%; opacity: 0.75; clip-path: polygon(0 100%, 0 60%, 30% 34%, 50% 55%, 70% 28%, 100% 62%, 100% 100%); }
+.aw-mountain-3 { left: 55%; width: 55%; height: 88%; opacity: 0.85; clip-path: polygon(0 100%, 0 48%, 25% 22%, 45% 45%, 65% 16%, 85% 40%, 100% 30%, 100% 100%); }
+
+/* --- Glass capsule --- */
+.aw-capsule {
+    position: absolute;
+    top: 46%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(66vmin, 400px);
+    height: min(66vmin, 400px);
+    border-radius: 50%;
+    background: rgba(8, 14, 34, 0.42);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 0 40px rgba(255, 255, 255, 0.02);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Seconds arc ring --- */
+.aw-sec-arc {
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.aw-sec-arc svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.aw-arc-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.07);
+    stroke-width: 2;
+}
+
+.aw-arc-fill {
+    fill: none;
+    stroke: var(--aw-glow);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 3016;
+    stroke-dashoffset: 3016;
+    filter: drop-shadow(0 0 5px var(--aw-glow));
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Time --- */
+.aw-time {
+    text-align: center;
+    line-height: 1;
+}
+
+.aw-hours {
+    font-size: 4.4rem;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.55) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.4));
+}
+
+.aw-minutes {
+    font-size: 4.4rem;
+    font-weight: 200;
+    letter-spacing: -0.02em;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.aw-sep {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--aw-glow);
+    margin: 0 auto 10px;
+    box-shadow: 0 0 10px var(--aw-glow), 0 0 20px var(--aw-glow);
+    animation: awSepPulse 1s ease-in-out infinite;
+}
+
+@keyframes awSepPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.65); }
+}
+
+.aw-seconds {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    color: var(--aw-glow);
+    text-transform: uppercase;
+    margin-top: 8px;
+    opacity: 0.9;
+    text-shadow: 0 0 12px var(--aw-glow);
+}
+
+.aw-date {
+    position: absolute;
+    bottom: 19%;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    .aw-hours, .aw-minutes { font-size: 3rem; }
+    .aw-capsule { width: min(72vmin, 330px); height: min(72vmin, 330px); top: 44%; }
+    .aw-landscape { height: 20vh; }
+}
+
+@media (max-height: 380px) {
+    .aw-capsule { display: none; }
+    .aw-landscape { display: none; }
+}

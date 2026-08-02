@@ -91,7 +91,10 @@ const Engine = {
         { id: 'solstice_prism', name: 'Solstice Prism' },
         { id: 'celestial_chronos', name: 'Celestial' },
         { id: 'mail', name: 'Mail' },
-        { id: 'industrial_digital_clock', name: 'Industrial Clock' }
+        { id: 'industrial_digital_clock', name: 'Industrial Clock' },
+        { id: 'aurora_weave', name: '✦ Aurora Weave' },
+        { id: 'golden_hour', name: '✦ Golden Hour' },
+        { id: 'moonfall', name: '✦ Moonfall' }
         
         
         

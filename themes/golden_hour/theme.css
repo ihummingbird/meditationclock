@@ -1,0 +1,330 @@
+.gh-stage {
+    --gh-sun: hsl(32, 92%, 62%);
+    --gh-deep: hsl(32, 75%, 38%);
+    --gh-mid: hsl(54, 88%, 58%);
+    --gh-soft: hsl(72, 92%, 78%);
+    --gh-accent: hsl(32, 90%, 55%);
+    --gh-glow: 0.6;
+    --gh-ripple: 0.5;
+
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(
+        180deg,
+        #1b0f2e 0%,
+        #3a1740 22%,
+        #6e2a3c 45%,
+        #b35a33 62%,
+        #e08a3c 76%,
+        #f5c36a 88%,
+        #ffe9b0 100%
+    );
+    font-family: 'Cormorant Garamond', 'Inter', serif;
+}
+
+/* --- Sky halos --- */
+.gh-halo {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    pointer-events: none;
+}
+
+.gh-halo-1 {
+    width: 70vmax;
+    height: 70vmax;
+    background: var(--gh-mid);
+    top: -25%;
+    right: -20%;
+    opacity: calc(0.35 * var(--gh-glow));
+    animation: ghHaloFloat 26s ease-in-out infinite;
+}
+
+.gh-halo-2 {
+    width: 55vmax;
+    height: 55vmax;
+    background: var(--gh-soft);
+    bottom: 15%;
+    left: -25%;
+    opacity: calc(0.3 * var(--gh-glow));
+    animation: ghHaloFloat 32s ease-in-out infinite reverse;
+}
+
+@keyframes ghHaloFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(6vw, 5vh) scale(1.1); }
+}
+
+/* --- Soft drifting clouds --- */
+.gh-cloud {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(34px);
+    background: var(--gh-soft);
+    opacity: calc(0.16 * var(--gh-glow));
+    pointer-events: none;
+}
+
+.gh-cloud-1 {
+    width: 46vw;
+    height: 12vh;
+    top: 22%;
+    left: -10%;
+    animation: ghCloudDrift calc(70s + 0s) linear infinite;
+}
+
+.gh-cloud-2 {
+    width: 38vw;
+    height: 10vh;
+    top: 34%;
+    left: 40%;
+    opacity: calc(0.12 * var(--gh-glow));
+    animation: ghCloudDrift calc(90s + 0s) linear infinite;
+    animation-delay: -40s;
+}
+
+.gh-cloud-3 {
+    width: 30vw;
+    height: 8vh;
+    top: 14%;
+    left: 60%;
+    opacity: calc(0.1 * var(--gh-glow));
+    animation: ghCloudDrift calc(110s + 0s) linear infinite;
+    animation-delay: -20s;
+}
+
+@keyframes ghCloudDrift {
+    from { transform: translateX(-10vw); }
+    to { transform: translateX(110vw); }
+}
+
+/* --- Sun --- */
+.gh-sun {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(52vmin, 340px);
+    height: min(52vmin, 340px);
+    z-index: 5;
+    pointer-events: none;
+}
+
+.gh-sun-disc {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 42% 38%, #fff7e0 0%, var(--gh-sun) 45%, var(--gh-deep) 100%);
+    box-shadow:
+        0 0 calc(60px * var(--gh-glow)) var(--gh-sun),
+        0 0 calc(140px * var(--gh-glow)) rgba(255, 180, 80, 0.55),
+        0 0 calc(260px * var(--gh-glow)) rgba(255, 140, 60, 0.3),
+        inset 0 0 40px rgba(255, 255, 255, 0.35);
+    animation: ghSunPulse 7s ease-in-out infinite;
+}
+
+.gh-sun-ring {
+    position: absolute;
+    inset: -7%;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 240, 200, 0.4);
+    animation: ghSunRing 18s linear infinite;
+}
+
+.gh-sun-ring::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--gh-soft);
+    box-shadow: 0 0 12px var(--gh-soft);
+}
+
+@keyframes ghSunPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.045); }
+}
+
+@keyframes ghSunRing {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* --- Sea horizon --- */
+.gh-sea {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 34%;
+    background: linear-gradient(180deg, rgba(70, 30, 40, 0.9) 0%, rgba(30, 14, 28, 0.98) 100%);
+    z-index: 6;
+    overflow: hidden;
+    clip-path: polygon(0 38%, 100% 28%, 100% 100%, 0 100%);
+}
+
+/* Golden light path on the water */
+.gh-glow-path {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(60%, 420px);
+    height: 100%;
+    background: linear-gradient(180deg, var(--gh-sun) 0%, transparent 90%);
+    opacity: calc(0.35 * var(--gh-glow));
+    filter: blur(14px);
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    animation: ghPathShimmer 4s ease-in-out infinite;
+}
+
+@keyframes ghPathShimmer {
+    0%, 100% { opacity: calc(0.3 * var(--gh-glow)); }
+    50% { opacity: calc(0.42 * var(--gh-glow)); }
+}
+
+.gh-ripple {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, transparent 0%, var(--gh-soft) 50%, transparent 100%);
+    opacity: calc(0.28 * var(--gh-ripple));
+    animation: ghRipple 5s ease-in-out infinite;
+}
+
+.gh-ripple:nth-child(2) { top: 12%; animation-delay: 0s; }
+.gh-ripple:nth-child(3) { top: 26%; animation-delay: -1.4s; transform: scaleX(0.8); }
+.gh-ripple:nth-child(4) { top: 42%; animation-delay: -2.6s; transform: scaleX(0.6); }
+.gh-ripple:nth-child(5) { top: 60%; animation-delay: -3.7s; transform: scaleX(0.45); }
+
+@keyframes ghRipple {
+    0%, 100% { opacity: calc(0.2 * var(--gh-ripple)); }
+    50% { opacity: calc(0.42 * var(--gh-ripple)); }
+}
+
+/* --- Time card --- */
+.gh-card {
+    position: absolute;
+    top: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(60vmin, 400px);
+    padding: 34px 44px 40px;
+    border-radius: 26px;
+    background: rgba(26, 12, 30, 0.38);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid rgba(255, 235, 190, 0.16);
+    box-shadow:
+        0 24px 60px rgba(20, 8, 20, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    z-index: 10;
+    text-align: center;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gh-overline {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    color: var(--gh-soft);
+    opacity: 0.85;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    white-space: nowrap;
+}
+
+.gh-time {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    line-height: 1;
+    gap: 6px;
+}
+
+.gh-hours {
+    font-size: 4.6rem;
+    font-weight: 400;
+    color: #fff8ea;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+}
+
+.gh-colon {
+    font-size: 3rem;
+    font-weight: 300;
+    color: var(--gh-soft);
+    animation: ghColonPulse 1s ease-in-out infinite;
+}
+
+@keyframes ghColonPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.gh-minutes {
+    font-size: 4.6rem;
+    font-weight: 300;
+    color: #ffe9c8;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.3);
+}
+
+.gh-seconds {
+    margin-top: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.35em;
+    color: var(--gh-sun);
+    text-transform: uppercase;
+    text-shadow: 0 0 14px var(--gh-sun);
+}
+
+/* --- Seconds arc --- */
+.gh-sec-arc {
+    position: absolute;
+    inset: 12px;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.gh-sec-arc svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.gh-arc-track {
+    fill: none;
+    stroke: rgba(255, 235, 190, 0.1);
+    stroke-width: 2;
+}
+
+.gh-arc-fill {
+    fill: none;
+    stroke: var(--gh-sun);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 3016;
+    stroke-dashoffset: 3016;
+    filter: drop-shadow(0 0 5px var(--gh-sun));
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    .gh-hours, .gh-minutes { font-size: 3.2rem; }
+    .gh-card { width: min(74vmin, 340px); top: 18%; padding: 26px 30px 30px; }
+    .gh-sun { top: 52%; width: min(60vmin, 300px); height: min(60vmin, 300px); }
+    .gh-sea { height: 38%; }
+}
+
+@media (max-height: 380px) {
+    .gh-card { display: none; }
+    .gh-sun { width: 26vh; height: 26vh; }
+}
