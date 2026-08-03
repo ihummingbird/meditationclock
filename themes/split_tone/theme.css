@@ -1,0 +1,127 @@
+/* ═══════════════════════════════════════════════════════════
+   Split Tone — Android StandBy-style diagonal split clock
+   Background splits black → white along a diagonal; the huge
+   digits invert at the seam using mix-blend-mode: difference,
+   so every glyph flips color exactly where it crosses the line.
+   ═══════════════════════════════════════════════════════════ */
+
+#stage {
+    position: fixed;
+    inset: 0;
+    background: #000000;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.sb-root {
+    --sb-angle: 135deg;
+    --sb-dark: #000000;
+    --sb-light: #ffffff;
+    --sb-size: 1;
+    --sb-font: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    --sb-weight: 800;
+
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(var(--sb-angle), var(--sb-dark) 50%, var(--sb-light) 50%);
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sb-font);
+    font-weight: var(--sb-weight);
+    user-select: none;
+}
+
+/* Everything that must invert against the split uses difference blending */
+.sb-time,
+.sb-secs,
+.sb-date,
+.sb-dots span {
+    color: #ffffff;
+    mix-blend-mode: difference;
+}
+
+/* ── Centered column: time / seconds / date ─────────────── */
+.sb-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(10px, 2.4vh, 22px);
+}
+
+.sb-time {
+    display: flex;
+    align-items: flex-start;
+    line-height: 0.85;
+    font-size: clamp(64px, min(36vw, 60vh), 340px);
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    transform: scale(var(--sb-size));
+    transform-origin: center center;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Square colon, sitting right on the dividing line */
+.sb-colon {
+    width: 0.12em;
+    height: 0.12em;
+    background: #ffffff;
+    border-radius: 10%;
+    margin: 0.3em 0.05em 0 0.04em;
+    flex-shrink: 0;
+    transition: opacity 0.2s ease;
+}
+
+.sb-no-blink .sb-colon { opacity: 1; }
+
+.sb-secs {
+    font-size: clamp(14px, 2.6vh, 22px);
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    opacity: 0.8;
+}
+
+.sb-date {
+    font-size: clamp(11px, 1.9vh, 15px);
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    opacity: 0.65;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.sb-hide-secs .sb-secs { display: none; }
+.sb-hide-date .sb-date { display: none; }
+
+/* ── Right edge: faint pagination dots ──────────────────── */
+.sb-dots {
+    position: absolute;
+    right: clamp(12px, 2vw, 30px);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.5vh, 14px);
+}
+
+.sb-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ffffff;
+    opacity: 0.5;
+}
+
+.sb-dots span.mid { opacity: 0.9; }
+.sb-hide-dots .sb-dots { display: none; }
+
+/* ── Short screens: drop the date to keep the clock huge ── */
+@media (max-height: 420px) {
+    .sb-date { display: none; }
+}
+
+@media (max-width: 420px) {
+    .sb-colon { width: 0.1em; height: 0.1em; margin-top: 0.3em; }
+}

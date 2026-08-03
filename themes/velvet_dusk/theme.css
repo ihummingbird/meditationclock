@@ -1,0 +1,247 @@
+/* ═══════════════════════════════════════════════════════════
+   Velvet Dusk — an Android StandBy-style twilight clock
+   Inspired by a dusk screenshot: a deep plum/mauve gradient,
+   a huge cream digital clock, plant silhouettes at the bottom
+   and floating dust motes catching the last light.
+   Default mood: Ocean Blue (switchable to Plum Dusk, Olive,
+   Midnight, Rose, Amber…).
+   ═══════════════════════════════════════════════════════════ */
+
+#stage {
+    position: fixed;
+    inset: 0;
+    background: #0a1626;
+    overflow: hidden;
+    pointer-events: none;
+    font-family: 'Montserrat', 'Inter', -apple-system, sans-serif;
+}
+
+.vd-root {
+    --vd-bg-top: #0e2038;
+    --vd-bg-bottom: #050b16;
+    --vd-horizon: rgba(88, 168, 255, 0.5);
+    --vd-horizon-2: rgba(255, 255, 255, 0.12);
+    --vd-accent: #8ecbff;
+    --vd-accent-glow: rgba(120, 190, 255, 0.32);
+    --vd-text: #f4efe6;
+    --vd-text-dim: rgba(244, 239, 230, 0.62);
+    --vd-ink: #060d18;
+    --vd-scale: 1;
+    --vd-glow: 1;
+    --vd-font: 'Montserrat', 'Inter', -apple-system, sans-serif;
+    --vd-weight: 300;
+
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(120% 90% at 50% 115%, var(--vd-horizon) 0%, transparent 58%),
+        radial-gradient(70% 50% at 50% 8%, var(--vd-horizon-2) 0%, transparent 60%),
+        linear-gradient(180deg, var(--vd-bg-top) 0%, var(--vd-bg-bottom) 100%);
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--vd-font);
+    font-weight: var(--vd-weight);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Breathing halo behind the clock ─────────────────────── */
+.vd-halo {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 88vmin;
+    height: 88vmin;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, var(--vd-accent-glow) 0%, transparent 62%);
+    filter: blur(34px);
+    opacity: calc(0.7 * var(--vd-glow));
+    animation: vdHaloBreathe 9s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes vdHaloBreathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: calc(0.55 * var(--vd-glow)); }
+    50% { transform: translate(-50%, -50%) scale(1.12); opacity: calc(0.85 * var(--vd-glow)); }
+}
+
+/* ── Plant silhouette strip along the bottom ─────────────── */
+.vd-silhouette {
+    position: absolute;
+    left: -4%;
+    right: -4%;
+    bottom: 0;
+    height: 30vh;
+    background:
+        radial-gradient(46% 90% at 8% 100%, var(--vd-ink) 0%, transparent 72%),
+        radial-gradient(38% 70% at 22% 100%, var(--vd-ink) 0%, transparent 70%),
+        radial-gradient(52% 95% at 42% 100%, var(--vd-ink) 0%, transparent 74%),
+        radial-gradient(34% 62% at 62% 100%, var(--vd-ink) 0%, transparent 68%),
+        radial-gradient(50% 88% at 80% 100%, var(--vd-ink) 0%, transparent 73%),
+        radial-gradient(40% 75% at 95% 100%, var(--vd-ink) 0%, transparent 72%);
+    filter: blur(2px);
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+/* Tall grass stalks poking above the silhouette */
+.vd-silhouette::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 8%;
+    height: 24vh;
+    background: repeating-linear-gradient(
+        78deg,
+        transparent 0 26px,
+        var(--vd-ink) 26px 29px,
+        transparent 29px 58px,
+        transparent 58px 84px,
+        var(--vd-ink) 84px 87px,
+        transparent 87px 118px
+    );
+    opacity: 0.55;
+    filter: blur(1px);
+}
+
+/* ── Floating dust motes / fireflies ─────────────────────── */
+.vd-dust {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--vd-accent);
+    box-shadow: 0 0 10px var(--vd-accent-glow), 0 0 26px var(--vd-accent-glow);
+    opacity: 0;
+    animation: vdDrift linear infinite;
+    pointer-events: none;
+}
+
+@keyframes vdDrift {
+    0% { transform: translate3d(0, 0, 0) scale(0.7); opacity: 0; }
+    12% { opacity: 0.85; }
+    55% { opacity: 0.45; }
+    100% { transform: translate3d(var(--vd-drift-x), -46vh, 0) scale(1.25); opacity: 0; }
+}
+
+/* ── Centered column: time / seconds / date ──────────────── */
+.vd-center {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(8px, 2.2vh, 20px);
+    transform: scale(var(--vd-scale));
+    transform-origin: center center;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vd-time {
+    display: flex;
+    align-items: flex-start;
+    line-height: 0.86;
+    font-size: clamp(58px, min(38vw, 34vh), 320px);
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+    color: var(--vd-text);
+    text-shadow:
+        0 0 22px var(--vd-accent-glow),
+        0 0 70px var(--vd-accent-glow);
+    white-space: nowrap;
+    filter: brightness(calc(0.9 + 0.1 * var(--vd-glow)));
+}
+
+/* Soft gradient cream like the reference photo */
+.vd-time span {
+    background: linear-gradient(180deg, #ffffff 0%, var(--vd-text) 55%, rgba(255, 255, 255, 0.55) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Round pulsing colon (like the °-separator in the photo) */
+.vd-colon {
+    width: 0.11em;
+    height: 0.11em;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 12px var(--vd-accent-glow);
+    margin: 0.3em 0.05em 0 0.04em;
+    flex-shrink: 0;
+    transition: opacity 0.25s ease;
+}
+
+.vd-no-blink .vd-colon { opacity: 1; }
+
+.vd-secs {
+    font-size: clamp(13px, 2.4vh, 20px);
+    font-weight: 400;
+    letter-spacing: 0.4em;
+    text-indent: 0.4em;
+    color: var(--vd-text-dim);
+}
+
+.vd-date {
+    font-size: clamp(11px, 1.9vh, 15px);
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    text-indent: 0.24em;
+    text-transform: uppercase;
+    color: var(--vd-text-dim);
+    white-space: nowrap;
+}
+
+.vd-hide-secs .vd-secs { display: none; }
+.vd-hide-date .vd-date { display: none; }
+.vd-hide-dust .vd-dust { display: none; }
+
+/* ── Right edge: faint pagination dots ───────────────────── */
+.vd-dots {
+    position: absolute;
+    right: clamp(12px, 2vw, 30px);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.5vh, 14px);
+}
+
+.vd-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--vd-text);
+    opacity: 0.45;
+    transition: all 0.4s ease;
+}
+
+.vd-dots span.mid {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--vd-accent-glow);
+    animation: vdDotPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes vdDotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.45); opacity: 0.75; }
+}
+
+.vd-hide-dots .vd-dots { display: none; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .vd-silhouette { height: 26vh; }
+    .vd-dust { display: none; }            /* keep phones light & smooth */
+    .vd-halo { width: 96vmin; height: 96vmin; }
+}
+
+@media (max-height: 430px) {
+    .vd-date { display: none; }
+    .vd-silhouette { height: 22vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vd-halo, .vd-dots span.mid, .vd-dust { animation: none; }
+    .vd-dust { opacity: 0.6; }
+}

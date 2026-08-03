@@ -1,0 +1,281 @@
+/* ═══════════════════════════════════════════════════════════
+   StandBy Weather — an Android StandBy-style weather widget clock
+   Pure black stage, sun icon, live timezone city, big time,
+   seconds as ↑/↓ lines, pagination dots on the right edge.
+   ═══════════════════════════════════════════════════════════ */
+
+#stage {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000000;
+    overflow: hidden;
+    pointer-events: none;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.sw-root {
+    --sw-sun: #FFD54F;
+    --sw-sun-glow: rgba(255, 213, 79, 0.25);
+    --sw-scale: 1;
+
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: scale(var(--sw-scale));
+    transform-origin: center center;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+
+/* --- Faint ambient glow behind the widget (stays near-black) --- */
+.sw-root::before {
+    content: '';
+    position: absolute;
+    left: 4%;
+    top: 50%;
+    width: 52vmin;
+    height: 52vmin;
+    transform: translateY(-50%);
+    background: radial-gradient(circle, var(--sw-sun-glow) 0%, transparent 62%);
+    filter: blur(46px);
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+/* --- Horizontal widget row: icon | text | temperature --- */
+.sw-widget {
+    display: flex;
+    align-items: center;
+    gap: clamp(22px, 4vw, 58px);
+    padding-left: 5vw;
+    padding-right: 4vw;
+}
+
+/* ── LEFT: Sun / Moon icon ─────────────────────────────── */
+.sw-icon {
+    position: relative;
+    width: clamp(52px, 9vmin, 104px);
+    height: clamp(52px, 9vmin, 104px);
+    flex-shrink: 0;
+}
+
+.sw-sun,
+.sw-moon {
+    position: absolute;
+    inset: 0;
+    transition: opacity 0.9s ease;
+}
+
+.sw-sun-disc {
+    position: absolute;
+    inset: 22%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #fff7d6 0%, var(--sw-sun) 55%, #eeb900 100%);
+    box-shadow:
+        0 0 14px var(--sw-sun),
+        0 0 36px var(--sw-sun-glow),
+        0 0 80px rgba(255, 210, 80, 0.16);
+    animation: swCorePulse 5s ease-in-out infinite;
+}
+
+@keyframes swCorePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* 8 rays drawn with a conic gradient, masked to a ring, slowly spinning */
+.sw-sun-rays {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+        var(--sw-sun) 0deg 14deg, transparent 14deg 31deg,
+        var(--sw-sun) 31deg 45deg, transparent 45deg 62deg,
+        var(--sw-sun) 62deg 76deg, transparent 76deg 93deg,
+        var(--sw-sun) 93deg 107deg, transparent 107deg 124deg,
+        var(--sw-sun) 124deg 138deg, transparent 138deg 155deg,
+        var(--sw-sun) 155deg 169deg, transparent 169deg 186deg,
+        var(--sw-sun) 186deg 200deg, transparent 200deg 217deg,
+        var(--sw-sun) 217deg 231deg, transparent 231deg 248deg,
+        var(--sw-sun) 248deg 262deg, transparent 262deg 279deg,
+        var(--sw-sun) 279deg 293deg, transparent 293deg 310deg,
+        var(--sw-sun) 310deg 324deg, transparent 324deg 341deg,
+        var(--sw-sun) 341deg 355deg, transparent 355deg 360deg
+    );
+    -webkit-mask: radial-gradient(circle, transparent 0 27%, #000 27% 40%, transparent 40%);
+    mask: radial-gradient(circle, transparent 0 27%, #000 27% 40%, transparent 40%);
+    filter: drop-shadow(0 0 6px var(--sw-sun-glow));
+    animation: swSunSpin 36s linear infinite;
+}
+
+@keyframes swSunSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* Crescent moon for the night (opacity toggled via .sw-night) */
+.sw-moon {
+    opacity: 0;
+    inset: 16%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f4f8ff 0%, #d8e2ee 60%, #b9c6d8 100%);
+    box-shadow:
+        0 0 20px rgba(220, 232, 255, 0.35),
+        0 0 60px rgba(200, 220, 255, 0.14);
+    animation: swMoonFloat 7s ease-in-out infinite;
+}
+
+.sw-moon::after {
+    content: '';
+    position: absolute;
+    inset: -6%;
+    border-radius: 50%;
+    background: #000;
+    transform: translate(38%, -6%);
+}
+
+@keyframes swMoonFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.sw-night .sw-sun { opacity: 0; }
+.sw-night .sw-moon { opacity: 1; }
+
+/* ── MIDDLE: Location, condition, rain, attribution ─────── */
+.sw-mid {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.sw-loc {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: clamp(15px, 2.2vmin, 21px);
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.sw-xhair {
+    width: 1em;
+    height: 1em;
+    color: rgba(255, 255, 255, 0.75);
+    flex-shrink: 0;
+}
+
+.sw-cond {
+    font-size: clamp(13px, 1.8vmin, 17px);
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.sw-rain {
+    font-size: clamp(11px, 1.5vmin, 14px);
+    color: rgba(255, 255, 255, 0.52);
+}
+
+.sw-attr {
+    font-size: clamp(9px, 1.2vmin, 12px);
+    color: rgba(255, 255, 255, 0.34);
+    letter-spacing: 0.04em;
+}
+
+/* ── RIGHT: Big time + ↑/↓ seconds ─────────────────────── */
+.sw-temp {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.sw-time {
+    display: flex;
+    align-items: flex-start;
+    line-height: 0.9;
+    font-family: 'Montserrat', 'Inter', sans-serif;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+}
+
+#sw-h,
+#sw-m {
+    font-size: clamp(64px, 15vmin, 170px);
+}
+
+/* The °-style separator, pulsing like a colon (white like the reference) */
+.sw-dot {
+    width: clamp(10px, 1.6vmin, 16px);
+    height: clamp(10px, 1.6vmin, 16px);
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    margin: 0.9em 0.09em 0 0.07em;
+    transition: opacity 0.2s ease;
+}
+
+.sw-subs {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.sw-sub {
+    font-size: clamp(13px, 1.9vmin, 18px);
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.02em;
+}
+
+/* ── Far right: pagination dots (middle one active) ────── */
+.sw-dots {
+    position: absolute;
+    right: clamp(14px, 2.4vw, 36px);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.4vh, 14px);
+}
+
+.sw-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.4s ease;
+}
+
+.sw-dots span.active {
+    background: #ffffff;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+    animation: swDotPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes swDotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.8; }
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 720px) {
+    .sw-widget { gap: 16px; padding-left: 4vw; }
+    .sw-attr { display: none; }
+}
+
+@media (max-height: 480px) {
+    .sw-attr,
+    .sw-dots { display: none; }
+    .sw-widget { gap: 20px; }
+}

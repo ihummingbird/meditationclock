@@ -94,7 +94,9 @@ const Engine = {
         { id: 'industrial_digital_clock', name: 'Industrial Clock' },
         { id: 'aurora_weave', name: '✦ Aurora Weave' },
         { id: 'golden_hour', name: '✦ Golden Hour' },
-        { id: 'moonfall', name: '✦ Moonfall' }
+        { id: 'moonfall', name: '✦ Moonfall' },
+        { id: 'split_tone', name: 'Split Tone' },
+        { id: 'velvet_dusk', name: '✦ Velvet Dusk' }
         
         
         
