@@ -291,6 +291,82 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); backgrou
     gap: 0; transition: all 0.6s var(--spring-easing);
 }
 
+/* --- TIMER SPLIT BUTTON & PICKER --- */
+#btn-session-toggle {
+    position: relative; overflow: hidden; 
+    display: flex; align-items: center; justify-content: center; 
+}
+#btn-session-text { 
+    pointer-events: none; position: relative; z-index: 1; 
+    width: 100%;
+    text-align: center;
+    transition: padding 0.3s ease;
+}
+
+#btn-timer-toggle {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 30%;
+    background: rgba(0,0,0,0.15); border-left: 1px solid rgba(0,0,0,0.05);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+    transition: background 0.2s; border-radius: 0 100px 100px 0;
+}
+#btn-timer-toggle:hover { background: rgba(0,0,0,0.25); }
+
+/* Hide the icon when in the sync/finished state */
+#controls-row.sync-layout #btn-timer-toggle { display: none !important; }
+
+/* iPhone-like Scroll Picker (Animated) */
+#timer-picker-container {
+    width: 100%; opacity: 0; transform: translateY(-20px) scale(0.95); 
+    max-height: 0; margin: 0; pointer-events: none; overflow: hidden;
+    position: relative; display: flex; flex-direction: column; align-items: center;
+    transition: all 0.4s var(--spring-easing);
+}
+#timer-picker-container.active { 
+    opacity: 1; transform: translateY(0) scale(1); max-height: 250px; 
+    margin-bottom: 30px; pointer-events: auto;
+}
+
+.picker-header {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; 
+    color: var(--text-dim); margin-bottom: 15px;
+}
+
+.picker-labels {
+    display: flex; gap: 20px; margin-bottom: 5px; width: 100%; justify-content: center;
+}
+.picker-labels span {
+    width: 80px; text-align: center; font-size: 9px; color: var(--text-dim); 
+    text-transform: uppercase; letter-spacing: 0.1em;
+}
+
+.picker-wheels-wrapper {
+    display: flex; justify-content: center; gap: 20px; width: 100%; height: 150px; 
+    overflow: hidden; position: relative;
+    mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%);
+}
+
+.picker-col { 
+    height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; 
+    width: 80px; text-align: center; scrollbar-width: none; 
+    cursor: grab;
+}
+.picker-col:active { cursor: grabbing; }
+.picker-col::-webkit-scrollbar { display: none; }
+.picker-item { 
+    height: 50px; line-height: 50px; font-size: 2rem; 
+    scroll-snap-align: center; font-family: 'JetBrains Mono', monospace; 
+    color: white; opacity: 0.5; transition: opacity 0.2s;
+}
+
+.picker-center-highlight {
+    position: absolute; top: 50px; height: 50px; width: 100%; left: 0;
+    border-top: 1px solid rgba(255,255,255,0.2); 
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    pointer-events: none; z-index: 5;
+}
+
 #btn-session-toggle {
     flex: 1; height: 100%;
     background: white; color: black; border: none;
@@ -389,6 +465,12 @@ body.fullscreen-mode #btn-exit-fs {
 /* Ensure navbar hides in fullscreen so exit button has space */
 body.fullscreen-mode #navbar { 
     transform: translateY(-100%); 
+}
+
+/* NEW: Hide the bottom session panel and handle in Focus Mode */
+body.fullscreen-mode #session-handle,
+body.fullscreen-mode #session-panel {
+    display: none !important;
 }
 
 /* ADD THIS NEW RULE for the hover effect */

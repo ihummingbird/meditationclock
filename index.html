@@ -80,9 +80,26 @@
         <div class="session-content">
             <div id="session-timer">00:00:00</div>
             
+            <!-- NEW: iPhone-like Timer Picker -->
+            <div id="timer-picker-container">
+                <div class="picker-header">SET TIMER DURATION</div>
+                <div class="picker-labels">
+                    <span>HOUR</span><span>MINUTE</span><span>SECOND</span>
+                </div>
+                <div class="picker-wheels-wrapper">
+                    <div class="picker-col" id="picker-h"></div>
+                    <div class="picker-col" id="picker-m"></div>
+                    <div class="picker-col" id="picker-s"></div>
+                    <div class="picker-center-highlight"></div>
+                </div>
+            </div>
+            
             <!-- CONTROLS ROW: Restored for neat alignment -->
             <div id="controls-row">
-                <button id="btn-session-toggle">BEGIN MEDITATION</button>
+                <button id="btn-session-toggle">
+                    <span id="btn-session-text">BEGIN MEDITATION</span>
+                    <div id="btn-timer-toggle"> &#9202; TIMER MODE</div>
+                </button>
                 
                 <div id="sync-group">
                     <input type="text" id="user-input" placeholder="YOUR NAME" maxlength="12" autocomplete="off">

@@ -99,10 +99,11 @@ const Engine = {
         
         
     ],
-    state: { activeThemeId: 'simple', themeSettings: {}, stopwatchMode: false },
-    session: { active: false, finished: false, startTime: null, elapsed: 0 },
+    state: { activeThemeId: 'simple', themeSettings: {}, stopwatchMode: false, timerSetupActive: false },
+    session: { active: false, finished: false, startTime: null, elapsed: 0, isTimer: false, timerEnd: null, lastFinishedDuration: 0 },
     currentThemeObj: null,
     idleTimer: null,
+    audioCtx: null,
 
 
     dom: {
@@ -129,13 +130,26 @@ const Engine = {
         syncGroup: document.getElementById('sync-group'),
         userInput: document.getElementById('user-input'),
         syncBtn: document.getElementById('btn-sync'),
-        syncMsg: document.getElementById('sync-msg')
+        syncMsg: document.getElementById('sync-msg'),
+
+        // New DOM elements for split button & timer
+        btnSessionText: document.getElementById('btn-session-text'),
+        timerBtn: document.getElementById('btn-timer-toggle'),
+        timerPicker: document.getElementById('timer-picker-container'),
+        pickerH: document.getElementById('picker-h'),
+        pickerM: document.getElementById('picker-m'),
+        pickerS: document.getElementById('picker-s'),
     },
 
     init: function () {
         this.loadState();
         this.initListeners();
         this.buildLibraryUI();
+        this.initTimerPicker();
+
+        // Timer icon click (event propagation stopped so it doesn't trigger the main button)
+        this.dom.timerBtn.onclick = (e) => { e.stopPropagation(); this.toggleTimerSetup(); };
+
         this.loadTheme(this.state.activeThemeId);
 
         // NEW LINE: Restore the session UI and memory before the clock starts ticking
@@ -174,7 +188,16 @@ const Engine = {
             this.closeDrawers();
         };
 
-        this.dom.sessionBtn.onclick = () => this.handleSessionClick();
+        this.dom.sessionBtn.onclick = () => {
+            // Initialize audio context on first user interaction
+            if (!this.audioCtx) {
+                try { this.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+            }
+            if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                this.audioCtx.resume();
+            }
+            this.handleSessionClick();
+        };
         this.dom.syncBtn.onclick = () => this.uploadSession();
 
         // --- NEW: Track user activity for auto-hiding fullscreen button ---
@@ -183,6 +206,26 @@ const Engine = {
             document.addEventListener(eventType, () => this.resetIdleTimer());
         });
 
+        // --- NEW: Global Audio Unlocker ---
+        document.addEventListener('click', () => {
+            if (!this.audioCtx) {
+                try { this.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+            }
+            if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                this.audioCtx.resume();
+            }
+            // Play a silent dummy beep to fully unlock iOS/Safari audio
+            if (this.audioCtx && !this.audioCtx._unlocked) {
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                gain.gain.setValueAtTime(0.0001, this.audioCtx.currentTime);
+                osc.start();
+                osc.stop(this.audioCtx.currentTime + 0.1);
+                this.audioCtx._unlocked = true;
+            }
+        }, { once: true });
 
         // --- NEW: Close drawers when clicking outside of them ---
         document.addEventListener('click', (event) => {
@@ -219,22 +262,32 @@ const Engine = {
                 // Restore Running State
                 s.active = true;
                 s.startTime = data.startTime;
+                s.isTimer = data.isTimer || false;
+                s.timerEnd = data.timerEnd || null;
+
+                // If timer expired while away, trigger end
+                if (s.isTimer && s.timerEnd <= Date.now()) {
+                    this.handleTimerEnd();
+                    return;
+                }
 
                 // Force UI to "Start" mode
-                this.dom.sessionBtn.innerText = "STOP SESSION";
+                this.dom.btnSessionText.innerText = s.isTimer ? "STOP TIMER" : "STOP SESSION";
                 this.dom.sessionBtn.classList.add('stop-mode');
                 this.dom.sessionHandle.classList.add('meditating');
-                this.dom.sessionText.innerText = "IN PROGRESS";
+                this.dom.sessionText.innerText = s.isTimer ? "TIMER RUNNING" : "IN PROGRESS";
                 this.dom.controlsRow.classList.remove('sync-layout'); 
                 this.dom.sessionTimer.classList.remove('finished');
-            } 
+                this.dom.timerBtn.style.display = 'none'; // Hide timer button on restore
+            }   
             else if (data.finished && data.elapsed) {
                 // Restore Finished/Sync State
                 s.finished = true;
                 s.elapsed = data.elapsed;
+                s.lastFinishedDuration = data.elapsed;
 
                 // Force UI to "Finished" mode
-                this.dom.sessionBtn.innerText = "NEW SESSION";
+                this.dom.btnSessionText.innerText = "NEW SESSION";
                 this.dom.sessionBtn.classList.remove('stop-mode');
                 this.dom.sessionText.innerText = "SESSION FINISHED";
                 this.dom.sessionTimer.classList.add('finished');
@@ -245,6 +298,193 @@ const Engine = {
             // If data gets corrupted somehow, clear it
             localStorage.removeItem('meditation_session');
         }
+    },
+
+    // --- NEW: Timer Scroll Wheel Logic ---
+    initTimerPicker: function() {
+        const hours = 24, mins = 60, secs = 60;
+        const itemHeight = 50;
+
+        for (let i = 0; i < hours * 3; i++) {
+            const div = document.createElement('div');
+            div.className = 'picker-item';
+            div.innerText = String(i % hours).padStart(2, '0');
+            this.dom.pickerH.appendChild(div);
+        }
+        for (let i = 0; i < mins * 3; i++) {
+            const divM = document.createElement('div');
+            divM.className = 'picker-item';
+            divM.innerText = String(i % mins).padStart(2, '0');
+            this.dom.pickerM.appendChild(divM);
+            
+            const divS = document.createElement('div');
+            divS.className = 'picker-item';
+            divS.innerText = String(i % secs).padStart(2, '0');
+            this.dom.pickerS.appendChild(divS);
+        }
+
+        const savedDuration = JSON.parse(localStorage.getItem('meditation_last_timer')) || { h: 0, m: 5, s: 0 };
+        const startH = savedDuration.h || 0;
+        const startM = savedDuration.m || 5;
+        const startS = savedDuration.s || 0;
+
+        // FIX: Use requestAnimationFrame to ensure DOM is fully rendered before setting scroll
+        requestAnimationFrame(() => {
+            this.dom.pickerH.scrollTop = ((hours * 1) + startH) * itemHeight - 50; 
+            this.dom.pickerM.scrollTop = ((mins * 1) + startM) * itemHeight - 50; 
+            this.dom.pickerS.scrollTop = ((secs * 1) + startS) * itemHeight - 50; 
+        });
+
+        let isDragging = false;
+        let startY = 0;
+        let startScrollTop = 0;
+        let activeCol = null;
+
+        const cols = [
+            { el: this.dom.pickerH, count: hours },
+            { el: this.dom.pickerM, count: mins },
+            { el: this.dom.pickerS, count: secs }
+        ];
+
+        const savePickerState = () => {
+            const h = Math.round((this.dom.pickerH.scrollTop + 50) / 50) % 24;
+            const m = Math.round((this.dom.pickerM.scrollTop + 50) / 50) % 60;
+            const sec = Math.round((this.dom.pickerS.scrollTop + 50) / 50) % 60;
+            localStorage.setItem('meditation_last_timer', JSON.stringify({ h, m, s: sec }));
+        };
+
+        cols.forEach(colObj => {
+            const col = colObj.el;
+            const count = colObj.count;
+            const setHeight = count * itemHeight;
+
+            col.addEventListener('scroll', () => {
+                if (isDragging) return; 
+                const scrollTop = col.scrollTop;
+                if (scrollTop < setHeight / 2) {
+                    col.scrollTop += setHeight;
+                } else if (scrollTop > setHeight * 2.5) {
+                    col.scrollTop -= setHeight;
+                }
+            });
+
+            col.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                activeCol = col;
+                startY = e.clientY;
+                startScrollTop = col.scrollTop;
+                col.style.scrollSnapType = 'none'; 
+                col.style.cursor = 'grabbing';
+                document.body.style.userSelect = 'none'; 
+                e.preventDefault();
+            });
+        });
+
+        const onMouseMove = (e) => {
+            if (!isDragging || !activeCol) return;
+            e.preventDefault();
+            const y = e.clientY;
+            const walk = (y - startY); 
+            activeCol.scrollTop = startScrollTop - walk;
+        };
+
+        const onMouseUp = () => {
+            if (!isDragging || !activeCol) return;
+            isDragging = false;
+            activeCol.style.scrollSnapType = 'y mandatory';
+            activeCol.style.cursor = 'grab';
+            document.body.style.userSelect = '';
+            const currentVal = Math.round((activeCol.scrollTop + 50) / itemHeight);
+            activeCol.scrollTo({
+                top: (currentVal * itemHeight) - 50,
+                behavior: 'smooth'
+            });
+            activeCol = null;
+            savePickerState(); // Save state when drag ends
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    },
+
+    toggleTimerSetup: function() {
+        this.state.timerSetupActive = !this.state.timerSetupActive;
+        if (this.state.timerSetupActive) {
+            this.dom.timerPicker.classList.add('active');
+            this.dom.sessionTimer.style.display = 'none';
+            this.dom.btnSessionText.innerText = "START TIMER";
+            this.dom.timerBtn.innerText = "CANCEL"; 
+            this.dom.controlsRow.classList.remove('sync-layout'); 
+            this.dom.btnSessionText.style.paddingRight = '30%'; 
+        } else {
+            this.dom.timerPicker.classList.remove('active');
+            this.dom.sessionTimer.style.display = 'block';
+            this.dom.btnSessionText.innerText = "BEGIN MEDITATION";
+            this.dom.timerBtn.innerText = "TIMER"; 
+            this.dom.btnSessionText.style.paddingRight = '30%'; 
+            
+            // FIX: Save state if user manually cancels
+            const h = Math.round((this.dom.pickerH.scrollTop + 50) / 50) % 24;
+            const m = Math.round((this.dom.pickerM.scrollTop + 50) / 50) % 60;
+            const sec = Math.round((this.dom.pickerS.scrollTop + 50) / 50) % 60;
+            localStorage.setItem('meditation_last_timer', JSON.stringify({ h, m, s: sec }));
+        }
+    },
+
+    // --- NEW: Timer End Logic & Alarm ---
+    handleTimerEnd: function() {
+        this.playBeep();
+        this.session.active = false;
+        this.session.finished = true;
+        this.session.elapsed = this.session.timerEnd - this.session.startTime; 
+        this.session.lastFinishedDuration = this.session.elapsed; // LOCK IN FOR SUBMISSION
+        
+        localStorage.setItem('meditation_session', JSON.stringify({ 
+            finished: true, elapsed: this.session.elapsed, isTimer: true 
+        }));
+        
+        this.dom.btnSessionText.innerText = "NEW SESSION";
+        this.dom.sessionBtn.classList.remove('stop-mode');
+        this.dom.sessionHandle.classList.remove('meditating');
+        this.dom.sessionText.innerText = "TIMER ENDED!";
+        this.dom.sessionTimer.classList.add('finished');
+        
+        // FIX: Show the actual elapsed time instead of 00:00:00
+        this.dom.sessionTimer.innerText = this.formatTime(this.session.elapsed);
+        
+        this.dom.controlsRow.classList.add('sync-layout'); 
+        this.dom.sessionPanel.classList.add('active'); 
+    },
+
+    playBeep: function() {
+        if (!this.audioCtx) {
+            try { this.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
+        }
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume().catch(() => {});
+        }
+        
+        const ctx = this.audioCtx;
+        
+        const playTone = (startTime, freq) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime + startTime);
+            gain.gain.exponentialRampToValueAtTime(0.6, ctx.currentTime + startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + startTime + 0.4);
+            
+            osc.start(ctx.currentTime + startTime);
+            osc.stop(ctx.currentTime + startTime + 0.45);
+        };
+        
+        playTone(0, 880);   // Beep 1
+        playTone(0.5, 880); // Beep 2
+        playTone(1.0, 1100);// Beep 3 (Higher pitch)
     },
 
 
@@ -299,20 +539,48 @@ const Engine = {
         setTimeout(this.updateScrollIndicator, 200);
     },
 
-        handleSessionClick: function () {
+    handleSessionClick: function () {
         const s = this.session;
+        
         if (!s.active && !s.finished) {
-            // --- 1. START SESSION ---
-            s.active = true; s.startTime = Date.now();
+            if (this.state.timerSetupActive) {
+                const h = Math.round((this.dom.pickerH.scrollTop + 50) / 50) % 24;
+                const m = Math.round((this.dom.pickerM.scrollTop + 50) / 50) % 60;
+                const sec = Math.round((this.dom.pickerS.scrollTop + 50) / 50) % 60;
+                const duration = (h * 3600 + m * 60 + sec) * 1000;
+                
+                if (duration === 0) return; 
+                
+                localStorage.setItem('meditation_last_timer', JSON.stringify({ h, m, s: sec }));
+                
+                s.isTimer = true;
+                s.active = true;
+                s.startTime = Date.now();
+                s.timerEnd = Date.now() + duration;
+                
+                this.state.timerSetupActive = false;
+                this.dom.timerPicker.classList.remove('active');
+                this.dom.sessionTimer.style.display = 'block';
+                this.dom.timerBtn.style.display = 'none'; 
+                this.dom.btnSessionText.style.paddingRight = '0'; 
+                
+                this.dom.btnSessionText.innerText = "STOP TIMER";
+            } else {
+                s.isTimer = false;
+                s.active = true; 
+                s.startTime = Date.now();
+                this.dom.timerBtn.style.display = 'none'; 
+                this.dom.btnSessionText.style.paddingRight = '0'; 
+                this.dom.btnSessionText.innerText = "STOP SESSION";
+            }
             
-            // NEW: Save "Active" state
-            localStorage.setItem('meditation_session', JSON.stringify({ active: true, startTime: s.startTime }));
+            localStorage.setItem('meditation_session', JSON.stringify({ 
+                active: true, startTime: s.startTime, isTimer: s.isTimer, timerEnd: s.timerEnd 
+            }));
             
-            // UI Updates
-            this.dom.sessionBtn.innerText = "STOP SESSION";
             this.dom.sessionBtn.classList.add('stop-mode');
             this.dom.sessionHandle.classList.add('meditating');
-            this.dom.sessionText.innerText = "IN PROGRESS";
+            this.dom.sessionText.innerText = s.isTimer ? "TIMER RUNNING" : "IN PROGRESS";
             
             this.dom.controlsRow.classList.remove('sync-layout'); 
             this.dom.sessionTimer.classList.remove('finished');
@@ -324,17 +592,21 @@ const Engine = {
         if (s.active) {
             // --- 2. FINISH SESSION ---
             s.active = false; s.finished = true;
-            s.elapsed = Date.now() - s.startTime;
+            s.elapsed = Date.now() - s.startTime; 
+            s.lastFinishedDuration = s.elapsed; // LOCK IN FOR SUBMISSION
             
-            // NEW: Save "Finished" state
-            localStorage.setItem('meditation_session', JSON.stringify({ finished: true, elapsed: s.elapsed }));
+            localStorage.setItem('meditation_session', JSON.stringify({ 
+                finished: true, elapsed: s.elapsed, isTimer: s.isTimer 
+            }));
             
-            // UI Updates
-            this.dom.sessionBtn.innerText = "NEW SESSION";
+            this.dom.btnSessionText.innerText = "NEW SESSION";
             this.dom.sessionBtn.classList.remove('stop-mode');
             this.dom.sessionHandle.classList.remove('meditating');
-            this.dom.sessionText.innerText = "SESSION FINISHED";
+            this.dom.sessionText.innerText = s.isTimer ? "TIMER FINISHED" : "SESSION FINISHED";
             this.dom.sessionTimer.classList.add('finished');
+            
+            // FIX: Update the timer text to show the final elapsed time!
+            this.dom.sessionTimer.innerText = this.formatTime(s.elapsed);
             
             this.dom.controlsRow.classList.add('sync-layout'); 
             return;
@@ -342,16 +614,18 @@ const Engine = {
         
         if (s.finished) {
             // --- 3. RESET ---
-            s.finished = false; s.elapsed = 0; s.startTime = null;
+            s.finished = false; s.elapsed = 0; s.startTime = null; 
+            s.isTimer = false; 
             
-            // NEW: Clear memory
             localStorage.removeItem('meditation_session');
             
-            // UI Updates
-            this.dom.sessionBtn.innerText = "BEGIN MEDITATION";
+            this.dom.btnSessionText.innerText = "BEGIN MEDITATION";
             this.dom.sessionTimer.innerText = "00:00:00";
             this.dom.sessionTimer.classList.remove('finished');
             this.dom.sessionText.innerText = "START SESSION";
+            this.dom.timerBtn.style.display = 'flex'; 
+            this.dom.timerBtn.innerText = "TIMER"; 
+            this.dom.btnSessionText.style.paddingRight = '30%'; 
             
             this.dom.controlsRow.classList.remove('sync-layout');
             return;
@@ -366,7 +640,7 @@ const Engine = {
         
         fetch(this.API_URL, {
             method: 'POST', mode: 'no-cors',
-            body: JSON.stringify({ username: user, duration: Math.floor(this.session.elapsed / 1000) })
+            body: JSON.stringify({ username: user, duration: Math.floor((this.session.lastFinishedDuration || this.session.elapsed) / 1000) })
         }).then(() => {
             this.dom.syncBtn.innerText = "✓";
             this.dom.syncMsg.innerText = "Session Saved";
@@ -443,7 +717,7 @@ const Engine = {
         
         const label = document.createElement('div');
         label.className = 'toggle-label';
-        label.innerText = "Stopwatch Sync";
+        label.innerText = "Stopwatch/Timer Mode";
         toggleRow.appendChild(label);
 
         const switchLabel = document.createElement('label');
@@ -483,7 +757,7 @@ const Engine = {
         warningBox.style.display = this.state.stopwatchMode ? 'block' : 'none'; // Only show if ON
         warningBox.innerHTML = `
             <strong>⚠ EXPERIMENTAL</strong><br>
-            Some themes may not animate correctly in stopwatch mode. Recommended setting is <strong>OFF</strong>.
+            Some themes may not animate correctly in stopwatch/timer mode. Recommended setting is <strong>OFF</strong>.
         `;
         sysBox.appendChild(warningBox);
 
@@ -626,6 +900,11 @@ const Engine = {
         document.body.classList.add('fullscreen-mode');
         this.closeDrawers();
 
+        // --- NEW: Close the bottom session panel if it was pulled up ---
+        if (this.dom.sessionPanel) {
+            this.dom.sessionPanel.classList.remove('active');
+        }
+
         // --- NEW: Start the idle timer immediately ---
         this.resetIdleTimer();
     },
@@ -725,20 +1004,21 @@ const Engine = {
     tick: function () {
         let h, m, s;
 
-        // MODE 1: STOPWATCH MODE (And Session is Active)
         if (this.state.stopwatchMode && this.session.active) {
-            const elapsed = Date.now() - this.session.startTime;
-            const totalSeconds = Math.floor(elapsed / 1000);
-            
+            let displayMs;
+            if (this.session.isTimer) {
+                displayMs = Math.max(0, this.session.timerEnd - Date.now());
+            } else {
+                displayMs = Date.now() - this.session.startTime;
+            }
+            const totalSeconds = Math.floor(displayMs / 1000);
             h = Math.floor(totalSeconds / 3600);
             m = Math.floor((totalSeconds % 3600) / 60);
             s = totalSeconds % 60;
         } 
-        // MODE 2: STOPWATCH MODE (But Session is Paused/Stopped)
         else if (this.state.stopwatchMode && !this.session.active) {
             h = 0; m = 0; s = 0;
         }
-        // MODE 3: STANDARD CLOCK MODE
         else {
             const now = new Date();
             h = now.getHours();
@@ -746,28 +1026,32 @@ const Engine = {
             s = now.getSeconds();
         }
 
-        // Format strings (00, 01, etc.)
         const timeObj = {
             h: String(h).padStart(2, '0'),
             m: String(m).padStart(2, '0'),
             s: String(s).padStart(2, '0')
         };
 
-        // Send to Theme
         this.currentThemeObj?.update(timeObj);
 
-                // Always update the footer timer separately (logic remains same)
+        // Always update the footer timer separately
         if (this.session.active) {
-            const currentElapsed = Date.now() - this.session.startTime;
-            this.dom.sessionTimer.innerText = this.formatTime(currentElapsed);
+            let currentDisplay = this.session.isTimer 
+                ? Math.max(0, this.session.timerEnd - Date.now()) 
+                : (Date.now() - this.session.startTime);
+                
+            this.dom.sessionTimer.innerText = this.formatTime(currentDisplay);
 
-            // --- NEW: 2-Hour Auto-Reset Check ---
-            if (currentElapsed >= 7200000) { 
-                this.handleSessionClick(); // 1st call: Stops the session and saves to 'Finished' state
-                this.handleSessionClick(); // 2nd call: Completely wipes and resets back to 00:00:00
+            // FIX: Check for timer end here so it works regardless of stopwatch mode
+            if (this.session.isTimer && this.session.timerEnd - Date.now() <= 0) {
+                this.handleTimerEnd();
+            } 
+            // Auto-reset for 2-hour standard stopwatch
+            else if (!this.session.isTimer && currentDisplay >= 7200000) { 
+                this.handleSessionClick(); 
+                this.handleSessionClick(); 
             }
         }
-
     },
 
     saveState: function () { localStorage.setItem('meditation_os_state', JSON.stringify(this.state)); },
